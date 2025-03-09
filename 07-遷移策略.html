@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AWS SAP 學習指南 - 遷移策略</title>
+    <style>
+        body {
+            font-family: "Microsoft JhengHei", Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+        }
+        h1 {
+            color: #0066cc;
+            text-align: center;
+            border-bottom: 2px solid #0066cc;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #0066cc;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+            margin-top: 30px;
+        }
+        h3 {
+            color: #0066cc;
+            margin-top: 20px;
+        }
+        ul {
+            padding-left: 20px;
+        }
+        li {
+            margin-bottom: 10px;
+        }
+        .note {
+            background-color: #f8f9fa;
+            border-left: 4px solid #0066cc;
+            padding: 10px;
+            margin: 15px 0;
+        }
+        .important {
+            background-color: #fff8dc;
+            border-left: 4px solid #ffa500;
+            padding: 10px;
+            margin: 15px 0;
+        }
+        a {
+            color: #0066cc;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+            padding: 10px 0;
+            border-top: 1px solid #ddd;
+            border-bottom: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <div class="nav">
+        <a href="06-無服務器架構.html">上一章：無服務器架構</a>
+        <a href="08-成本優化.html">下一章：成本優化</a>
+    </div>
+
+    <h1>遷移策略</h1>
+    
+    <div class="important">
+        <p>遷移到 AWS 是 SAP 考試的重要主題，涉及遷移框架、策略、工具和最佳實踐，以及如何設計和實施成功的遷移計劃。</p>
+    </div>
+    
+    <h2>AWS 遷移框架</h2>
+    
+    <h3>遷移框架概述</h3>
+    <ul>
+        <li>AWS 遷移框架 (AWS MF)
+            <ul>
+                <li>結構化方法論</li>
+                <li>基於 AWS 的最佳實踐</li>
+                <li>幫助組織規劃和執行遷移</li>
+                <li>涵蓋業務和技術方面</li>
+            </ul>
+        </li>
+        <li>遷移框架的六個視角
+            <ul>
+                <li>業務：確保遷移與業務目標一致</li>
+                <li>人員：培訓和組織變革管理</li>
+                <li>治理：控制和監督遷移過程</li>
+                <li>平台：設計、實施和優化 AWS 基礎設施</li>
+                <li>安全：確保遷移和雲環境的安全</li>
+                <li>運營：管理雲環境的日常運營</li>
+            </ul>
+        </li>
+        <li>遷移階段
+            <ul>
+                <li>評估：評估遷移準備度和業務案例</li>
+                <li>動員：建立遷移基礎和初始能力</li>
+                <li>遷移和現代化：遷移和優化應用程序和數據</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <h3>遷移準備度評估 (MRA)</h3>
+    <ul>
+        <li>評估目的
+            <ul>
+                <li>識別組織的雲準備度</li>
+                <li>發現差距和風險</li>
+                <li>制定行動計劃</li>
+                <li>確定優先順序</li>
+            </ul>
+        </li>
+        <li>評估領域
+            <ul>
+                <li>業務驅動因素和結果</li>
+                <li>平台和應用程序</li>
+                <li>流程和運營</li>
+                <li>安全和合規</li>
+                <li>人員和文化</li>
+            </ul>
+        </li>
+        <li>評估結果
+            <ul>
+                <li>準備度評分</li>
+                <li>差距分析</li>
+                <li>風險評估</li>
+                <li>行動計劃</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <h3>遷移業務案例</h3>
+    <ul>
+        <li>業務案例組成部分
+            <ul>
+                <li>當前狀態成本</li>
+                <li>未來狀態成本</li>
+                <li>遷移成本</li>
+                <li>預期收益</li>
+                <li>風險分析</li>
+            </ul>
+        </li>
+        <li>成本考慮因素
+            <ul>
+                <li>基礎設施成本</li>
+                <li>軟件許可成本</li>
+                <li>運營成本</li>
+                <li>人員成本</li>
+                <li>遷移和培訓成本</li>
+            </ul>
+        </li>
+        <li>收益類型
+            <ul>
+                <li>硬收益：直接成本節約</li>
+                <li>軟收益：生產力提高、業務敏捷性</li>
+                <li>戰略收益：創新能力、上市時間縮短</li>
+            </ul>
+        </li>
+        <li>TCO 和 ROI 計算
+            <ul>
+                <li>總擁有成本 (TCO) 分析</li>
+                <li>投資回報率 (ROI) 計算</li>
+                <li>回收期分析</li>
+                <li>淨現值 (NPV) 計算</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <div class="note">
+        <p>考試要點：了解 AWS 遷移框架的六個視角和三個階段，能夠識別遷移準備度評估的關鍵領域，以及如何構建遷移業務案例。</p>
+    </div>
+    
+    <h2>遷移策略和方法</h2>
+    
+    <h3>6R 遷移策略</h3>
+    <ul>
+        <li>重新託管 (Rehost)
+            <ul>
+                <li>"直接遷移"或"搬遷升降"</li>
+                <li>將應用程序移至雲端而不進行更改</li>
+                <li>通常使用 AWS MGN 或 CloudEndure</li>
+                <li>優點：快速、低風險、最小化變更</li>
+                <li>缺點：無法充分利用雲的優勢</li>
+            </ul>
+        </li>
+        <li>重新平台化 (Replatform)
+            <ul>
+                <li>"提升和優化"</li>
+                <li>進行一些雲優化而不改變核心架構</li>
+                <li>例如：遷移到 RDS、使用自動擴展</li>
+                <li>優點：平衡雲收益和工作量</li>
+                <li>缺點：需要更多時間和技能</li>
+            </ul>
+        </li>
+        <li>重新購買 (Repurchase)
+            <ul>
+                <li>"丟棄和購買"</li>
+                <li>從現有應用程序轉向 SaaS 產品</li>
+                <li>例如：從自託管 CRM 轉向 Salesforce</li>
+                <li>優點：減少維護負擔，使用現代功能</li>
+                <li>缺點：可能需要數據遷移和培訓</li>
+            </ul>
+        </li>
+        <li>重新架構 (Refactor/Re-architect)
+            <ul>
+                <li>重新設計應用程序以充分利用雲原生功能</li>
+                <li>例如：轉向微服務、使用無服務器架構</li>
+                <li>優點：最大化雲收益，提高敏捷性</li>
+                <li>缺點：成本高、時間長、風險大</li>
+            </ul>
+        </li>
+        <li>保留 (Retain)
+            <ul>
+                <li>保持應用程序在現有環境中</li>
+                <li>適用於不適合遷移的應用程序</li>
+                <li>例如：即將退役的應用程序、合規要求</li>
+                <li>優點：避免不必要的工作</li>
+                <li>缺點：錯過雲收益</li>
+            </ul>
+        </li>
+        <li>停用 (Retire)
+            <ul>
+                <li>停用不再需要的應用程序</li>
+                <li>適用於冗餘或過時的應用程序</li>
+                <li>優點：減少維護負擔和成本</li>
+                <li>缺點：需要數據歸檔和用戶通知</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <div class="important">
+        <p>策略選擇：選擇適當的遷移策略取決於多種因素，包括業務優先級、時間限制、應用程序複雜性、技術債務和預算。通常，組織會採用混合方法，對不同的應用程序使用不同的策略。例如，對於關鍵業務應用程序可能選擇重新託管以快速遷移，然後在雲中逐步現代化。</p>
+    </div>
+    
+    <h3>遷移階段和波次</h3>
+    <ul>
+        <li>遷移階段
+            <ul>
+                <li>發現和規劃：評估應用程序組合</li>
+                <li>設計：確定遷移策略和目標架構</li>
+                <li>實施：執行遷移</li>
+                <li>驗證：測試和確認</li>
+                <li>切換：將流量轉移到新環境</li>
+                <li>優化：持續改進</li>
+            </ul>
+        </li>
+        <li>波次規劃
+            <ul>
+                <li>將應用程序分組為遷移波次</li>
+                <li>基於依賴關係、複雜性和業務優先級</li>
+                <li>從低風險、低複雜性應用程序開始</li>
+                <li>逐步增加複雜性</li>
+            </ul>
+        </li>
+        <li>應用程序優先級
+            <ul>
+                <li>業務關鍵性</li>
+                <li>技術複雜性</li>
+                <li>依賴關係</li>
+                <li>遷移難度</li>
+                <li>預期收益</li>
+            </ul>
+        </li>
+        <li>依賴關係映射
+            <ul>
+                <li>識別應用程序之間的依賴關係</li>
+                <li>識別外部依賴關係</li>
+                <li>創建依賴關係圖</li>
+                <li>確定遷移順序</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <h3>遷移工廠模型</h3>
+    <ul>
+        <li>概念
+            <ul>
+                <li>工業化的遷移方法</li>
+                <li>標準化流程和工具</li>
+                <li>並行工作流</li>
+                <li>可重複和可擴展</li>
+            </ul>
+        </li>
+        <li>團隊結構
+            <ul>
+                <li>項目管理辦公室 (PMO)</li>
+                <li>雲基礎團隊</li>
+                <li>遷移團隊</li>
+                <li>應用程序團隊</li>
+                <li>安全和合規團隊</li>
+            </ul>
+        </li>
+        <li>工作流
+            <ul>
+                <li>發現和評估</li>
+                <li>遷移規劃</li>
+                <li>基礎設施構建</li>
+                <li>應用程序遷移</li>
+                <li>測試和驗證</li>
+                <li>切換和優化</li>
+            </ul>
+        </li>
+        <li>優勢
+            <ul>
+                <li>加速遷移速度</li>
+                <li>提高一致性和質量</li>
+                <li>降低風險</li>
+                <li>優化資源利用</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <div class="note">
+        <p>考試要點：了解 6R 遷移策略的特點、優缺點和適用場景，能夠為特定應用程序選擇合適的遷移策略。理解遷移階段和波次規劃的原則，以及遷移工廠模型的組成和優勢。</p>
+    </div>
+    
+    <h2>AWS 遷移工具和服務</h2>
+    
+    <h3>發現和規劃工具</h3>
+    <ul>
+        <li>AWS Application Discovery Service
+            <ul>
+                <li>收集有關本地數據中心的信息</li>
+                <li>代理式發現：詳細的系統配置和性能數據</li>
+                <li>無代理發現：基於 VMware vCenter 的發現</li>
+                <li>與 Migration Hub 集成</li>
+            </ul>
+        </li>
+        <li>AWS Migration Hub
+            <ul>
+                <li>集中跟踪遷移進度</li>
+                <li>可視化應用程序組合</li>
+                <li>與其他 AWS 遷移工具集成</li>
+                <li>提供狀態更新和指標</li>
+            </ul>
+        </li>
+        <li>AWS Migration Evaluator
+            <ul>
+                <li>評估遷移業務案例</li>
+                <li>提供成本估算</li>
+                <li>識別節約機會</li>
+                <li>生成報告</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <h3>遷移工具</h3>
+    <ul>
+        <li>AWS Application Migration Service (MGN)
+            <ul>
+                <li>AWS 的主要遷移服務</li>
+                <li>自動將物理、虛擬或雲服務器遷移到 AWS</li>
+                <li>最小停機時間</li>
+                <li>支持大多數操作系統</li>
+            </ul>
+        </li>
+        <li>AWS Database Migration Service (DMS)
+            <ul>
+                <li>遷移關係型數據庫、數據倉庫、NoSQL 數據庫</li>
+                <li>支持同構和異構遷移</li>
+                <li>最小停機時間</li>
+                <li>持續數據複製</li>
+            </ul>
+        </li>
+        <li>AWS Schema Conversion Tool (SCT)
+            <ul>
+                <li>自動將數據庫架構從一種引擎轉換為另一種</li>
+                <li>與 DMS 配合使用</li>
+                <li>評估複雜性和兼容性</li>
+                <li>轉換存儲過程和函數</li>
+            </ul>
+        </li>
+        <li>AWS DataSync
+            <ul>
+                <li>在本地存儲和 AWS 存儲服務之間傳輸數據</li>
+                <li>高速數據傳輸</li>
+                <li>自動加密和驗證</li>
+                <li>支持 S3、EFS、FSx</li>
+            </ul>
+        </li>
+        <li>AWS Transfer Family
+            <ul>
+                <li>使用 SFTP、FTPS、FTP 傳輸文件</li>
+                <li>無需修改客戶端應用程序</li>
+                <li>與 S3 和 EFS 集成</li>
+                <li>支持現有身份提供商</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <div class="important">
+        <p>工具選擇：選擇合適的遷移工具取決於遷移策略、源環境和目標環境。例如，對於重新託管策略，AWS MGN 是首選工具；對於數據庫遷移，DMS 和 SCT 是關鍵工具；對於大量數據傳輸，可以考慮 DataSync 或 Snow Family 設備。</p>
+    </div>
+    
+    <h3>特殊遷移場景</h3>
+    <ul>
+        <li>VMware Cloud on AWS
+            <ul>
+                <li>將 VMware 工作負載遷移到 AWS</li>
+                <li>使用熟悉的 VMware 工具和流程</li>
+                <li>無需重新平台化或重新架構</li>
+                <li>與 AWS 服務集成</li>
+            </ul>
+        </li>
+        <li>AWS Snow Family
+            <ul>
+                <li>用於大規模數據傳輸的物理設備</li>
+                <li>Snowcone：小型便攜設備</li>
+                <li>Snowball：中型數據傳輸設備</li>
+                <li>Snowmobile：極大規模數據傳輸</li>
+            </ul>
+        </li>
+        <li>AWS Mainframe Modernization
+            <ul>
+                <li>將大型機應用程序遷移到 AWS</li>
+                <li>重新平台化和重構選項</li>
+                <li>自動化工具和流程</li>
+                <li>托管運行時環境</li>
+            </ul>
+        </li>
+        <li>AWS End-of-Support Migration Program (EMP)
+            <ul>
+                <li>遷移運行在過時操作系統上的應用程序</li>
+                <li>使用應用程序兼容性包</li>
+                <li>無需重寫代碼</li>
+                <li>減少安全風險</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <h3>遷移後優化</h3>
+    <ul>
+        <li>AWS Trusted Advisor
+            <ul>
+                <li>提供最佳實踐建議</li>
+                <li>成本優化</li>
+                <li>性能改進</li>
+                <li>安全加強</li>
+                <li>容錯能力提升</li>
+            </ul>
+        </li>
+        <li>AWS Compute Optimizer
+            <ul>
+                <li>分析資源利用率</li>
+                <li>提供實例類型建議</li>
+                <li>基於機器學習</li>
+                <li>降低成本並提高性能</li>
+            </ul>
+        </li>
+        <li>AWS Cost Explorer
+            <ul>
+                <li>分析和可視化成本</li>
+                <li>識別節約機會</li>
+                <li>預測未來支出</li>
+                <li>設置預算和警報</li>
+            </ul>
+        </li>
+        <li>AWS Well-Architected Tool
+            <ul>
+                <li>評估工作負載與最佳實踐的一致性</li>
+                <li>識別改進機會</li>
+                <li>基於 AWS Well-Architected Framework</li>
+                <li>提供行動計劃</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <div class="note">
+        <p>考試要點：了解不同 AWS 遷移工具和服務的功能和適用場景，能夠為特定遷移需求選擇合適的工具。理解特殊遷移場景的解決方案，以及遷移後優化的方法和工具。</p>
+    </div>
+    
+    <h2>遷移最佳實踐和常見挑戰</h2>
+    
+    <h3>遷移最佳實踐</h3>
+    <ul>
+        <li>建立雲卓越中心 (CCoE)
+            <ul>
+                <li>集中雲專業知識</li>
+                <li>制定標準和最佳實踐</li>
+                <li>提供培訓和支持</li>
+                <li>推動雲採用</li>
+            </ul>
+        </li>
+        <li>實施雲治理框架
+            <ul>
+                <li>定義策略和標準</li>
+                <li>實施控制和監控</li>
+                <li>管理成本和資源</li>
+                <li>確保合規</li>
+            </ul>
+        </li>
+        <li>採用基礎設施即代碼 (IaC)
+            <ul>
+                <li>使用 AWS CloudFormation 或 Terraform</li>
+                <li>版本控制基礎設施</li>
+                <li>自動化部署</li>
+                <li>確保一致性</li>
+            </ul>
+        </li>
+        <li>實施持續集成/持續部署 (CI/CD)
+            <ul>
+                <li>自動化測試和部署</li>
+                <li>使用 AWS CodePipeline、CodeBuild、CodeDeploy</li>
+                <li>減少人為錯誤</li>
+                <li>加快發布速度</li>
+            </ul>
+        </li>
+        <li>建立全面的測試策略
+            <ul>
+                <li>功能測試</li>
+                <li>性能測試</li>
+                <li>安全測試</li>
+                <li>災難恢復測試</li>
+            </ul>
+        </li>
+        <li>制定詳細的切換計劃
+            <ul>
+                <li>定義切換步驟</li>
+                <li>建立回滾計劃</li>
+                <li>設置成功標準</li>
+                <li>分配角色和責任</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <h3>常見遷移挑戰</h3>
+    <ul>
+        <li>技能差距
+            <ul>
+                <li>缺乏雲專業知識</li>
+                <li>解決方案：培訓、合作夥伴支持、AWS 專業服務</li>
+            </ul>
+        </li>
+        <li>應用程序依賴關係
+            <ul>
+                <li>複雜的依賴關係難以映射</li>
+                <li>解決方案：使用發現工具、依賴關係映射、分階段遷移</li>
+            </ul>
+        </li>
+        <li>數據遷移
+            <ul>
+                <li>大量數據傳輸</li>
+                <li>解決方案：AWS DMS、DataSync、Snow Family</li>
+            </ul>
+        </li>
+        <li>網絡連接
+            <ul>
+                <li>帶寬限制</li>
+                <li>解決方案：AWS Direct Connect、VPN、Snow Family</li>
+            </ul>
+        </li>
+        <li>安全和合規
+            <ul>
+                <li>滿足安全要求</li>
+                <li>解決方案：AWS 安全服務、合規框架、第三方審計</li>
+            </ul>
+        </li>
+        <li>業務連續性
+            <ul>
+                <li>最小化停機時間</li>
+                <li>解決方案：藍/綠部署、金絲雀發布、數據複製</li>
+            </ul>
+        </li>
+        <li>組織變革管理
+            <ul>
+                <li>抵制變革</li>
+                <li>解決方案：溝通計劃、培訓、早期成功案例</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <div class="important">
+        <p>風險緩解：成功的遷移需要識別和緩解風險。關鍵風險緩解策略包括：詳細的規劃和測試、分階段方法、明確的回滾計劃、充分的培訓和溝通，以及與經驗豐富的合作夥伴合作。</p>
+    </div>
+    
+    <h3>遷移案例研究</h3>
+    <ul>
+        <li>大型企業遷移
+            <ul>
+                <li>挑戰：複雜的應用程序組合、嚴格的合規要求</li>
+                <li>方法：遷移工廠模型、混合策略、分階段方法</li>
+                <li>結果：成本節約、敏捷性提高、創新加速</li>
+            </ul>
+        </li>
+        <li>數據中心退役
+            <ul>
+                <li>挑戰：緊迫的截止日期、遺留系統</li>
+                <li>方法：以重新託管為主、並行工作流、自動化工具</li>
+                <li>結果：按時完成、避免數據中心續約成本</li>
+            </ul>
+        </li>
+        <li>數字化轉型
+            <ul>
+                <li>挑戰：現代化老舊應用程序、提高客戶體驗</li>
+                <li>方法：重新架構關鍵應用程序、採用微服務和無服務器</li>
+                <li>結果：更快的創新、改善的客戶體驗、新收入流</li>
+            </ul>
+        </li>
+        <li>收購整合
+            <ul>
+                <li>挑戰：整合不同環境、標準化流程</li>
+                <li>方法：建立共享服務平台、統一身份管理</li>
+                <li>結果：簡化運營、降低成本、提高協作</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <h3>遷移後運營模型</h3>
+    <ul>
+        <li>雲運營模型
+            <ul>
+                <li>定義角色和責任</li>
+                <li>建立運營流程</li>
+                <li>實施監控和警報</li>
+                <li>自動化運營任務</li>
+            </ul>
+        </li>
+        <li>雲財務管理
+            <ul>
+                <li>成本分配和標記</li>
+                <li>預算和預測</li>
+                <li>成本優化</li>
+                <li>財務報告</li>
+            </ul>
+        </li>
+        <li>持續優化
+            <ul>
+                <li>性能監控和調整</li>
+                <li>安全評估和加強</li>
+                <li>架構審查</li>
+                <li>新服務採用</li>
+            </ul>
+        </li>
+        <li>雲卓越中心演變
+            <ul>
+                <li>從遷移支持到創新推動者</li>
+                <li>促進最佳實踐採用</li>
+                <li>推動雲原生開發</li>
+                <li>建立雲技能中心</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <div class="note">
+        <p>考試要點：了解遷移最佳實踐和常見挑戰，能夠識別和應對遷移過程中的風險。理解不同遷移場景的特點和解決方案，以及如何建立有效的遷移後運營模型。</p>
+    </div>
+    
+    <h2>AWS 合作夥伴和支持</h2>
+    
+    <h3>AWS 合作夥伴網絡</h3>
+    <ul>
+        <li>合作夥伴類型
+            <ul>
+                <li>諮詢合作夥伴：提供專業服務和遷移支持</li>
+                <li>技術合作夥伴：提供與 AWS 集成的產品</li>
+                <li>培訓合作夥伴：提供 AWS 培訓和認證</li>
+                <li>託管服務提供商 (MSP)：管理 AWS 環境</li>
+            </ul>
+        </li>
+        <li>合作夥伴能力
+            <ul>
+                <li>遷移能力：專注於雲遷移</li>
+                <li>DevOps 能力：專注於 CI/CD 和自動化</li>
+                <li>安全能力：專注於雲安全</li>
+                <li>數據和分析能力：專注於數據解決方案</li>
+            </ul>
+        </li>
+        <li>合作夥伴計劃
+            <ul>
+                <li>AWS 遷移加速計劃 (MAP)</li>
+                <li>AWS Well-Architected 合作夥伴計劃</li>
+                <li>AWS 託管服務提供商計劃</li>
+                <li>AWS 能力計劃</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <h3>AWS 專業服務</h3>
+    <ul>
+        <li>服務類型
+            <ul>
+                <li>諮詢服務：戰略建議和規劃</li>
+                <li>實施服務：技術實施和遷移</li>
+                <li>運營服務：持續支持和優化</li>
+                <li>教育服務：培訓和知識轉移</li>
+            </ul>
+        </li>
+        <li>專業服務計劃
+            <ul>
+                <li>AWS 遷移評估</li>
+                <li>AWS 基礎設施事件管理</li>
+                <li>AWS Well-Architected 審查</li>
+                <li>AWS 運營審查</li>
+            </ul>
+        </li>
+        <li>交付方法
+            <ul>
+                <li>指導性參與：知識轉移和指導</li>
+                <li>協作參與：共同工作</li>
+                <li>交付參與：AWS 主導實施</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <h3>AWS 支持計劃</h3>
+    <ul>
+        <li>基本支持
+            <ul>
+                <li>免費</li>
+                <li>訪問文檔、白皮書和支持論壇</li>
+                <li>有限的技術支持</li>
+                <li>訪問 Trusted Advisor 的核心檢查</li>
+            </ul>
+        </li>
+        <li>開發者支持
+            <ul>
+                <li>適合測試和開發</li>
+                <li>電子郵件支持</li>
+                <li>12-24 小時響應時間</li>
+                <li>一對一技術支持</li>
+            </ul>
+        </li>
+        <li>業務支持
+            <ul>
+                <li>適合生產工作負載</li>
+                <li>電話、電子郵件和聊天支持</li>
+                <li>1-24 小時響應時間</li>
+                <li>訪問所有 Trusted Advisor 檢查</li>
+            </ul>
+        </li>
+        <li>企業支持
+            <ul>
+                <li>適合業務關鍵型工作負載</li>
+                <li>15 分鐘-24 小時響應時間</li>
+                <li>技術客戶經理 (TAM)</li>
+                <li>諮詢審查和指導</li>
+                <li>基礎設施事件管理</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <div class="important">
+        <p>合作夥伴選擇：選擇合適的 AWS 合作夥伴可以顯著加速遷移並降低風險。尋找具有相關行業經驗、技術專長和成功案例的合作夥伴。考慮合作夥伴的認證和能力，以及他們與您組織的文化契合度。</p>
+    </div>
+    
+    <div class="note">
+        <p>考試要點：了解 AWS 合作夥伴網絡的結構和不同類型的合作夥伴，以及如何選擇合適的合作夥伴支持遷移。理解 AWS 專業服務和支持計劃的選項和適用場景。</p>
+    </div>
+
+    <div class="nav">
+        <a href="06-無服務器架構.html">上一章：無服務器架構</a>
+        <a href="08-成本優化.html">下一章：成本優化</a>
+    </div>
+</body>
+</html>

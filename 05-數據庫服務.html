@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AWS SAP 學習指南 - 數據庫服務</title>
+    <style>
+        body {
+            font-family: "Microsoft JhengHei", Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+        }
+        h1 {
+            color: #0066cc;
+            text-align: center;
+            border-bottom: 2px solid #0066cc;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #0066cc;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+            margin-top: 30px;
+        }
+        h3 {
+            color: #0066cc;
+            margin-top: 20px;
+        }
+        ul {
+            padding-left: 20px;
+        }
+        li {
+            margin-bottom: 10px;
+        }
+        .note {
+            background-color: #f8f9fa;
+            border-left: 4px solid #0066cc;
+            padding: 10px;
+            margin: 15px 0;
+        }
+        .important {
+            background-color: #fff8dc;
+            border-left: 4px solid #ffa500;
+            padding: 10px;
+            margin: 15px 0;
+        }
+        a {
+            color: #0066cc;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+            padding: 10px 0;
+            border-top: 1px solid #ddd;
+            border-bottom: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <div class="nav">
+        <a href="04-存儲服務.html">上一章：存儲服務</a>
+        <a href="06-無服務器架構.html">下一章：無服務器架構</a>
+    </div>
+
+    <h1>數據庫服務</h1>
+    
+    <div class="important">
+        <p>數據庫服務是 AWS 的核心服務之一，SAP 考試中涉及 RDS、DynamoDB、Aurora、Redshift 等關鍵知識點，以及如何選擇合適的數據庫服務和設計高性能、高可用的數據庫架構。</p>
+    </div>
+    
+    <h2>數據庫選擇指南</h2>
+    
+    <h3>選擇合適的數據庫服務</h3>
+    <ul>
+        <li>關係型數據庫
+            <ul>
+                <li>適合結構化數據和複雜查詢</li>
+                <li>需要 ACID 事務</li>
+                <li>現有應用使用 SQL</li>
+                <li>選項：RDS、Aurora</li>
+            </ul>
+        </li>
+        <li>鍵值數據庫
+            <ul>
+                <li>適合高吞吐量、低延遲訪問</li>
+                <li>簡單的查詢模式</li>
+                <li>需要無限擴展</li>
+                <li>選項：DynamoDB</li>
+            </ul>
+        </li>
+        <li>文檔數據庫
+            <ul>
+                <li>適合半結構化數據</li>
+                <li>靈活的架構</li>
+                <li>選項：DocumentDB</li>
+            </ul>
+        </li>
+        <li>內存數據庫
+            <ul>
+                <li>適合需要微秒級延遲的用例</li>
+                <li>緩存、會話存儲</li>
+                <li>選項：ElastiCache、MemoryDB</li>
+            </ul>
+        </li>
+        <li>圖形數據庫
+            <ul>
+                <li>適合高度關聯的數據</li>
+                <li>社交網絡、推薦引擎</li>
+                <li>選項：Neptune</li>
+            </ul>
+        </li>
+        <li>時間序列數據庫
+            <ul>
+                <li>適合時間戳數據</li>
+                <li>IoT、監控、分析</li>
+                <li>選項：Timestream</li>
+            </ul>
+        </li>
+        <li>寬列數據庫
+            <ul>
+                <li>適合大規模分析工作負載</li>
+                <li>選項：Keyspaces (for Apache Cassandra)</li>
+            </ul>
+        </li>
+        <li>數據倉庫
+            <ul>
+                <li>適合數據分析和報告</li>
+                <li>選項：Redshift</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <div class="note">
+        <p>考試要點：了解不同類型數據庫的特點和適用場景，能夠為特定工作負載選擇最合適的數據庫服務。</p>
+    </div>
+    
+    <h2>Amazon RDS (關係型數據庫服務)</h2>
+    
+    <h3>支持的數據庫引擎</h3>
+    <ul>
+        <li>MySQL</li>
+        <li>PostgreSQL</li>
+        <li>MariaDB</li>
+        <li>Oracle</li>
+        <li>SQL Server</li>
+        <li>Aurora (MySQL/PostgreSQL 兼容)</li>
+    </ul>
+    
+    <h3>部署選項</h3>
+    <ul>
+        <li>單可用區部署
+            <ul>
+                <li>單個數據庫實例</li>
+                <li>適合開發和測試環境</li>
+                <li>成本較低</li>
+            </ul>
+        </li>
+        <li>多可用區部署
+            <ul>
+                <li>主數據庫實例和備用副本</li>
+                <li>自動故障轉移</li>
+                <li>提高可用性</li>
+                <li>同步複製</li>
+            </ul>
+        </li>
+        <li>讀取副本
+            <ul>
+                <li>只讀數據庫實例</li>
+                <li>分擔讀取工作負載</li>
+                <li>可以跨區域部署</li>
+                <li>異步複製</li>
+                <li>可以提升為獨立實例</li>
+            </ul>
+        </li>
+        <li>多區域部署
+            <ul>
+                <li>跨區域讀取副本</li>
+                <li>災難恢復</li>
+                <li>全球分佈的應用</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <div class="important">
+        <p>高可用性設計：對於生產環境，應該使用多可用區部署以提高可用性。對於需要擴展讀取性能的應用，應該使用讀取副本。對於需要全球分佈或災難恢復的應用，應該使用跨區域讀取副本。</p>
+    </div>
+    
+    <h3>實例類型和存儲</h3>
+    <ul>
+        <li>實例類型
+            <ul>
+                <li>標準：平衡計算、內存和網絡</li>
+                <li>內存優化：適合內存密集型工作負載</li>
+                <li>突發性能：適合不需要持續高性能的工作負載</li>
+            </ul>
+        </li>
+        <li>存儲類型
+            <ul>
+                <li>通用型 SSD (gp2/gp3)：平衡成本和性能</li>
+                <li>預置 IOPS SSD (io1/io2)：I/O 密集型工作負載</li>
+                <li>磁性存儲：舊一代存儲，不推薦新工作負載使用</li>
+            </ul>
+        </li>
+        <li>存儲自動擴展
+            <ul>
+                <li>自動增加存儲容量</li>
+                <li>設置閾值和最大存儲限制</li>
+                <li>避免存儲空間不足</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <h3>安全性</h3>
+    <ul>
+        <li>網絡安全
+            <ul>
+                <li>VPC 中部署</li>
+                <li>安全組控制訪問</li>
+                <li>私有子網中部署</li>
+                <li>使用 VPC 端點進行私有訪問</li>
+            </ul>
+        </li>
+        <li>加密
+            <ul>
+                <li>靜態加密：使用 KMS 密鑰</li>
+                <li>傳輸中加密：使用 SSL/TLS</li>
+                <li>創建時啟用靜態加密</li>
+            </ul>
+        </li>
+        <li>身份驗證和授權
+            <ul>
+                <li>數據庫用戶和密碼</li>
+                <li>IAM 數據庫身份驗證</li>
+                <li>與 Secrets Manager 集成</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <h3>備份和恢復</h3>
+    <ul>
+        <li>自動備份
+            <ul>
+                <li>每日完整備份</li>
+                <li>事務日誌的持續備份</li>
+                <li>可以恢復到任何時間點（在保留期內）</li>
+                <li>默認保留期為 7 天（最多 35 天）</li>
+            </ul>
+        </li>
+        <li>手動快照
+            <ul>
+                <li>用戶啟動的備份</li>
+                <li>保留直到明確刪除</li>
+                <li>可以跨區域複製</li>
+                <li>可以共享給其他 AWS 賬戶</li>
+            </ul>
+        </li>
+        <li>時間點恢復
+            <ul>
+                <li>恢復到保留期內的任何時間點</li>
+                <li>創建新的數據庫實例</li>
+                <li>使用自動備份</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <div class="note">
+        <p>考試要點：了解 RDS 的部署選項和高可用性功能，特別是多可用區部署和讀取副本的區別和使用場景。理解 RDS 的備份和恢復選項，以及如何設計符合 RPO 和 RTO 要求的解決方案。</p>
+    </div>
+    
+    <h2>Amazon Aurora</h2>
+    
+    <h3>架構和特點</h3>
+    <ul>
+        <li>與 MySQL 和 PostgreSQL 兼容</li>
+        <li>分布式存儲架構
+            <ul>
+                <li>數據在多個可用區的多個存儲節點上複製</li>
+                <li>6 個數據副本，跨 3 個可用區</li>
+                <li>自動修復損壞的數據</li>
+                <li>存儲和計算分離</li>
+            </ul>
+        </li>
+        <li>性能優勢
+            <ul>
+                <li>比標準 MySQL 快 5 倍</li>
+                <li>比標準 PostgreSQL 快 3 倍</li>
+                <li>優化的日誌處理</li>
+                <li>並行查詢</li>
+            </ul>
+        </li>
+        <li>自動擴展
+            <ul>
+                <li>存儲自動擴展，最大 128TB</li>
+                <li>無需預置存儲</li>
+                <li>按使用量付費</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <h3>部署選項</h3>
+    <ul>
+        <li>Aurora 預置
+            <ul>
+                <li>傳統數據庫部署模型</li>
+                <li>固定大小的實例</li>
+                <li>適合可預測的工作負載</li>
+            </ul>
+        </li>
+        <li>Aurora Serverless
+            <ul>
+                <li>按需自動擴展</li>
+                <li>基於工作負載自動調整容量</li>
+                <li>可以縮減到零</li>
+                <li>適合不可預測或間歇性工作負載</li>
+            </ul>
+        </li>
+        <li>Aurora 全球數據庫
+            <ul>
+                <li>跨區域複製</li>
+                <li>低延遲全球讀取</li>
+                <li>災難恢復</li>
+                <li>次要區域可以提升為主要區域</li>
+            </ul>
+        </li>
+        <li>Aurora 多主集群
+            <ul>
+                <li>多個寫入節點</li>
+                <li>適合需要高寫入可用性的應用</li>
+                <li>僅適用於 MySQL 兼容版本</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <div class="important">
+        <p>選擇指南：對於需要高性能、高可用性的關係型數據庫工作負載，Aurora 是首選。對於不可預測或間歇性工作負載，選擇 Aurora Serverless；對於全球分佈的應用，選擇 Aurora 全球數據庫；對於需要高寫入可用性的應用，選擇 Aurora 多主集群。</p>
+    </div>
+    
+    <h3>高可用性和容錯能力</h3>
+    <ul>
+        <li>自動故障轉移
+            <ul>
+                <li>檢測數據庫故障</li>
+                <li>自動提升副本為新的主實例</li>
+                <li>通常在 30 秒內完成</li>
+            </ul>
+        </li>
+        <li>Aurora 副本
+            <ul>
+                <li>最多 15 個只讀副本</li>
+                <li>共享存儲卷，低複製延遲</li>
+                <li>可以跨可用區部署</li>
+                <li>自動擴展副本數量</li>
+            </ul>
+        </li>
+        <li>自動備份和恢復
+            <ul>
+                <li>持續備份到 S3</li>
+                <li>時間點恢復</li>
+                <li>快照和克隆</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <h3>監控和性能優化</h3>
+    <ul>
+        <li>Performance Insights
+            <ul>
+                <li>數據庫性能監控</li>
+                <li>識別性能問題</li>
+                <li>分析等待事件</li>
+                <li>查看 SQL 語句性能</li>
+            </ul>
+        </li>
+        <li>增強監控
+            <ul>
+                <li>操作系統指標</li>
+                <li>進程信息</li>
+                <li>高精度監控（最低 1 秒間隔）</li>
+            </ul>
+        </li>
+        <li>Aurora 並行查詢
+            <ul>
+                <li>將查詢處理推送到存儲層</li>
+                <li>加速分析查詢</li>
+                <li>適用於 MySQL 兼容版本</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <div class="note">
+        <p>考試要點：了解 Aurora 的架構和優勢，特別是其分布式存儲架構和高可用性特性。理解不同部署選項的適用場景，以及如何監控和優化 Aurora 數據庫的性能。</p>
+    </div>
+    
+    <h2>Amazon DynamoDB</h2>
+    
+    <h3>基本概念</h3>
+    <ul>
+        <li>完全托管的 NoSQL 數據庫服務
+            <ul>
+                <li>鍵值和文檔數據模型</li>
+                <li>無服務器架構</li>
+                <li>自動擴展</li>
+                <li>毫秒級延遲</li>
+            </ul>
+        </li>
+        <li>數據模型
+            <ul>
+                <li>表：數據的集合</li>
+                <li>項目：表中的單個數據記錄</li>
+                <li>屬性：項目中的數據元素</li>
+                <li>主鍵：唯一標識表中的項目</li>
+            </ul>
+        </li>
+        <li>主鍵類型
+            <ul>
+                <li>簡單主鍵：只有分區鍵</li>
+                <li>複合主鍵：分區鍵和排序鍵</li>
+            </ul>
+        </li>
+        <li>二級索引
+            <ul>
+                <li>全局二級索引 (GSI)：不同的分區鍵和排序鍵</li>
+                <li>本地二級索引 (LSI)：相同的分區鍵，不同的排序鍵</li>
+                <li>提供額外的查詢路徑</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <h3>容量模式</h3>
+    <ul>
+        <li>預置容量模式
+            <ul>
+                <li>指定讀取和寫入容量單位</li>
+                <li>可以使用自動擴展</li>
+                <li>適合可預測的工作負載</li>
+                <li>按小時計費</li>
+            </ul>
+        </li>
+        <li>按需容量模式
+            <ul>
+                <li>自動擴展，無需規劃容量</li>
+                <li>按請求付費</li>
+                <li>適合不可預測的工作負載</li>
+                <li>比預置容量模式成本高</li>
+            </ul>
+        </li>
+        <li>容量單位
+            <ul>
+                <li>讀取容量單位 (RCU)：每秒 1 個強一致性讀取或 2 個最終一致性讀取（最大 4KB）</li>
+                <li>寫入容量單位 (WCU)：每秒 1 個寫入（最大 1KB）</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <div class="important">
+        <p>成本優化：對於可預測的工作負載，使用預置容量模式並配置自動擴展可以降低成本。對於不可預測或突發性工作負載，使用按需容量模式可以避免容量規劃和管理。使用 DynamoDB Accelerator (DAX) 可以減少讀取容量單位的使用。</p>
+    </div>
+    
+    <h3>高級功能</h3>
+    <ul>
+        <li>DynamoDB Accelerator (DAX)
+            <ul>
+                <li>完全托管的內存緩存</li>
+                <li>微秒級讀取延遲</li>
+                <li>無需修改應用程序代碼</li>
+                <li>減少讀取容量單位的使用</li>
+            </ul>
+        </li>
+        <li>全局表
+            <ul>
+                <li>多區域複製</li>
+                <li>多主複製（多區域寫入）</li>
+                <li>低延遲全球訪問</li>
+                <li>災難恢復</li>
+            </ul>
+        </li>
+        <li>時間點恢復
+            <ul>
+                <li>持續備份</li>
+                <li>恢復到過去 35 天內的任何時間點</li>
+                <li>保護意外寫入或刪除</li>
+            </ul>
+        </li>
+        <li>事務
+            <ul>
+                <li>跨多個項目和表的原子操作</li>
+                <li>ACID 屬性</li>
+                <li>適用於需要事務的應用</li>
+            </ul>
+        </li>
+        <li>DynamoDB Streams
+            <ul>
+                <li>捕獲表中的數據修改</li>
+                <li>按時間順序記錄</li>
+                <li>與 Lambda 集成</li>
+                <li>用於事件驅動架構</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <h3>數據建模和訪問模式</h3>
+    <ul>
+        <li>單表設計
+            <ul>
+                <li>將多個實體類型存儲在單個表中</li>
+                <li>使用分區鍵和排序鍵區分實體</li>
+                <li>減少表的數量</li>
+                <li>支持複雜的查詢</li>
+            </ul>
+        </li>
+        <li>分區鍵選擇
+            <ul>
+                <li>高基數屬性</li>
+                <li>均勻分佈訪問</li>
+                <li>避免熱分區</li>
+            </ul>
+        </li>
+        <li>排序鍵設計
+            <ul>
+                <li>支持範圍查詢</li>
+                <li>複合排序鍵（使用分隔符）</li>
+                <li>層次數據模型</li>
+            </ul>
+        </li>
+        <li>稀疏索引
+            <ul>
+                <li>只有部分項目有特定屬性</li>
+                <li>減少索引大小和成本</li>
+                <li>提高查詢效率</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <div class="note">
+        <p>考試要點：了解 DynamoDB 的數據模型和主鍵設計，特別是如何選擇合適的分區鍵和排序鍵。理解不同容量模式的適用場景，以及如何優化成本和性能。熟悉 DynamoDB 的高級功能，如 DAX、全局表和 DynamoDB Streams。</p>
+    </div>
+    
+    <h2>Amazon Redshift</h2>
+    
+    <h3>架構和特點</h3>
+    <ul>
+        <li>完全托管的數據倉庫服務
+            <ul>
+                <li>列式存儲</li>
+                <li>大規模並行處理 (MPP)</li>
+                <li>PB 級數據分析</li>
+                <li>與 SQL 工具兼容</li>
+            </ul>
+        </li>
+        <li>集群架構
+            <ul>
+                <li>領導節點：查詢規劃和結果聚合</li>
+                <li>計算節點：執行查詢和存儲數據</li>
+                <li>節點類型：RA3、DC2</li>
+                <li>密集計算和密集存儲選項</li>
+            </ul>
+        </li>
+        <li>性能優化
+            <ul>
+                <li>列式存儲</li>
+                <li>數據壓縮</li>
+                <li>區域映射</li>
+                <li>查詢優化</li>
+                <li>結果緩存</li>
+            </ul>
+        </li>
+        <li>彈性調整
+            <ul>
+                <li>添加或移除節點</li>
+                <li>調整節點類型</li>
+                <li>暫停和恢復集群</li>
+                <li>彈性調整大小</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <h3>數據加載和卸載</h3>
+    <ul>
+        <li>COPY 命令
+            <ul>
+                <li>從 S3、DynamoDB、EMR 加載數據</li>
+                <li>並行加載</li>
+                <li>自動壓縮</li>
+                <li>支持多種文件格式</li>
+            </ul>
+        </li>
+        <li>UNLOAD 命令
+            <ul>
+                <li>將數據卸載到 S3</li>
+                <li>並行卸載</li>
+                <li>可以壓縮和加密</li>
+            </ul>
+        </li>
+        <li>Redshift Spectrum
+            <ul>
+                <li>直接查詢 S3 中的數據</li>
+                <li>無需加載數據</li>
+                <li>支持多種文件格式</li>
+                <li>與 Athena 和 Glue 集成</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <div class="important">
+        <p>數據倉庫設計：Redshift 適合大規模數據分析和報告工作負載。使用列式存儲和數據壓縮可以顯著提高查詢性能。對於需要查詢 PB 級數據的場景，可以使用 Redshift Spectrum 直接查詢 S3 中的數據，無需將所有數據加載到 Redshift 中。</p>
+    </div>
+    
+    <h3>安全性</h3>
+    <ul>
+        <li>網絡安全
+            <ul>
+                <li>VPC 中部署</li>
+                <li>安全組控制訪問</li>
+                <li>私有子網中部署</li>
+                <li>使用 VPC 端點進行私有訪問</li>
+            </ul>
+        </li>
+        <li>加密
+            <ul>
+                <li>靜態加密：使用 KMS 或 HSM</li>
+                <li>傳輸中加密：使用 SSL</li>
+                <li>列級加密</li>
+            </ul>
+        </li>
+        <li>身份驗證和授權
+            <ul>
+                <li>數據庫用戶和密碼</li>
+                <li>IAM 身份驗證</li>
+                <li>細粒度訪問控制</li>
+                <li>與 Secrets Manager 集成</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <h3>備份和恢復</h3>
+    <ul>
+        <li>自動快照
+            <ul>
+                <li>每 8 小時或按指定間隔</li>
+                <li>默認保留 1 天（最多 35 天）</li>
+                <li>增量備份</li>
+            </ul>
+        </li>
+        <li>手動快照
+            <ul>
+                <li>用戶啟動的備份</li>
+                <li>保留直到明確刪除</li>
+                <li>可以跨區域複製</li>
+                <li>可以共享給其他 AWS 賬戶</li>
+            </ul>
+        </li>
+        <li>從快照恢復
+            <ul>
+                <li>恢復到新集群</li>
+                <li>可以更改節點類型和數量</li>
+                <li>可以恢復到不同區域</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <div class="note">
+        <p>考試要點：了解 Redshift 的架構和性能優化技術，特別是如何選擇合適的節點類型和集群配置。理解數據加載和查詢優化的最佳實踐，以及如何使用 Redshift Spectrum 查詢 S3 中的數據。</p>
+    </div>
+    
+    <h2>其他數據庫服務</h2>
+    
+    <h3>Amazon ElastiCache</h3>
+    <ul>
+        <li>完全托管的內存數據存儲
+            <ul>
+                <li>支持 Redis 和 Memcached</li>
+                <li>微秒級延遲</li>
+                <li>適合緩存、會話存儲、實時分析</li>
+            </ul>
+        </li>
+        <li>Redis 特性
+            <ul>
+                <li>多可用區部署</li>
+                <li>讀取副本</li>
+                <li>自動故障轉移</li>
+                <li>備份和恢復</li>
+                <li>數據持久性</li>
+                <li>複雜數據類型</li>
+            </ul>
+        </li>
+        <li>Memcached 特性
+            <ul>
+                <li>多線程架構</li>
+                <li>簡單的鍵值存儲</li>
+                <li>無持久性</li>
+                <li>自動發現節點</li>
+            </ul>
+        </li>
+        <li>使用場景
+            <ul>
+                <li>數據庫查詢緩存</li>
+                <li>會話存儲</li>
+                <li>頁面緩存</li>
+                <li>排行榜</li>
+                <li>消息隊列</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <h3>Amazon DocumentDB</h3>
+    <ul>
+        <li>與 MongoDB 兼容的文檔數據庫
+            <ul>
+                <li>支持 MongoDB 3.6 和 4.0 API</li>
+                <li>存儲 JSON 數據</li>
+                <li>靈活的架構</li>
+            </ul>
+        </li>
+        <li>架構
+            <ul>
+                <li>存儲和計算分離</li>
+                <li>分布式、容錯存儲系統</li>
+                <li>6 個數據副本，跨 3 個可用區</li>
+            </ul>
+        </li>
+        <li>擴展
+            <ul>
+                <li>存儲自動擴展，最大 64TB</li>
+                <li>最多 16 個副本</li>
+                <li>獨立擴展計算和存儲</li>
+            </ul>
+        </li>
+        <li>使用場景
+            <ul>
+                <li>內容管理</li>
+                <li>用戶配置文件</li>
+                <li>移動應用</li>
+                <li>目錄</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <h3>Amazon Neptune</h3>
+    <ul>
+        <li>完全托管的圖形數據庫
+            <ul>
+                <li>支持屬性圖和 RDF</li>
+                <li>支持 TinkerPop Gremlin 和 SPARQL</li>
+                <li>高性能圖形查詢</li>
+            </ul>
+        </li>
+        <li>架構
+            <ul>
+                <li>存儲和計算分離</li>
+                <li>分布式、容錯存儲系統</li>
+                <li>15 個數據副本，跨 3 個可用區</li>
+            </ul>
+        </li>
+        <li>使用場景
+            <ul>
+                <li>社交網絡</li>
+                <li>推薦引擎</li>
+                <li>欺詐檢測</li>
+                <li>知識圖譜</li>
+                <li>網絡和 IT 操作</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <h3>Amazon Keyspaces</h3>
+    <ul>
+        <li>與 Apache Cassandra 兼容的托管數據庫
+            <ul>
+                <li>支持 Cassandra 查詢語言 (CQL)</li>
+                <li>無服務器架構</li>
+                <li>自動擴展</li>
+            </ul>
+        </li>
+        <li>特性
+            <ul>
+                <li>按需和預置容量模式</li>
+                <li>自動擴展</li>
+                <li>靜態和傳輸中加密</li>
+                <li>時間點恢復</li>
+            </ul>
+        </li>
+        <li>使用場景
+            <ul>
+                <li>高吞吐量時間序列數據</li>
+                <li>大規模工業數據</li>
+                <li>設備遙測</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <h3>Amazon Timestream</h3>
+    <ul>
+        <li>完全托管的時間序列數據庫
+            <ul>
+                <li>專為時間序列數據優化</li>
+                <li>自動擴展</li>
+                <li>內置時間序列分析功能</li>
+            </ul>
+        </li>
+        <li>特性
+            <ul>
+                <li>自動分層存儲</li>
+                <li>內置時間和空間聚合</li>
+                <li>SQL 兼容查詢</li>
+                <li>與 AWS IoT、Kinesis、Prometheus 集成</li>
+            </ul>
+        </li>
+        <li>使用場景
+            <ul>
+                <li>IoT 應用</li>
+                <li>DevOps 監控</li>
+                <li>實時分析</li>
+                <li>工業遙測</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <div class="note">
+        <p>考試要點：了解不同專用數據庫服務的特點和適用場景，能夠為特定工作負載選擇最合適的數據庫服務。理解如何使用 ElastiCache 提高應用性能，以及何時選擇 DocumentDB、Neptune、Keyspaces 或 Timestream 等專用數據庫服務。</p>
+    </div>
+
+    <div class="nav">
+        <a href="04-存儲服務.html">上一章：存儲服務</a>
+        <a href="06-無服務器架構.html">下一章：無服務器架構</a>
+    </div>
+</body>
+</html>

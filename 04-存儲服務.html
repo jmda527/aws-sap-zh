@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AWS SAP 學習指南 - 存儲服務</title>
+    <style>
+        body {
+            font-family: "Microsoft JhengHei", Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+        }
+        h1 {
+            color: #0066cc;
+            text-align: center;
+            border-bottom: 2px solid #0066cc;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #0066cc;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+            margin-top: 30px;
+        }
+        h3 {
+            color: #0066cc;
+            margin-top: 20px;
+        }
+        ul {
+            padding-left: 20px;
+        }
+        li {
+            margin-bottom: 10px;
+        }
+        .note {
+            background-color: #f8f9fa;
+            border-left: 4px solid #0066cc;
+            padding: 10px;
+            margin: 15px 0;
+        }
+        .important {
+            background-color: #fff8dc;
+            border-left: 4px solid #ffa500;
+            padding: 10px;
+            margin: 15px 0;
+        }
+        a {
+            color: #0066cc;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+            padding: 10px 0;
+            border-top: 1px solid #ddd;
+            border-bottom: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <div class="nav">
+        <a href="03-計算服務.html">上一章：計算服務</a>
+        <a href="05-數據庫服務.html">下一章：數據庫服務</a>
+    </div>
+
+    <h1>存儲服務</h1>
+    
+    <div class="important">
+        <p>存儲服務是 AWS 的基礎服務之一，SAP 考試中涉及 S3、EBS、EFS、Storage Gateway 等關鍵知識點，以及如何設計高效、安全、經濟的存儲架構。</p>
+    </div>
+    
+    <h2>Amazon S3 (簡單存儲服務)</h2>
+    
+    <h3>基本概念</h3>
+    <ul>
+        <li>對象存儲服務
+            <ul>
+                <li>高度可擴展、高可用性、高耐用性</li>
+                <li>存儲無限量的數據</li>
+                <li>適合非結構化數據</li>
+                <li>支持任何類型的文件</li>
+            </ul>
+        </li>
+        <li>存儲桶和對象
+            <ul>
+                <li>存儲桶：存儲對象的容器，全球唯一名稱</li>
+                <li>對象：存儲在存儲桶中的文件和元數據</li>
+                <li>對象大小：最大 5TB</li>
+                <li>對象鍵：唯一標識存儲桶中對象的名稱</li>
+            </ul>
+        </li>
+        <li>數據一致性模型
+            <ul>
+                <li>所有區域的所有操作都是強一致性</li>
+                <li>新對象的 PUT 請求後立即可讀</li>
+                <li>覆蓋和刪除現有對象的請求後立即可見</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <h3>存儲類別</h3>
+    <ul>
+        <li>S3 標準
+            <ul>
+                <li>默認存儲類別，高可用性和耐用性</li>
+                <li>適合頻繁訪問的數據</li>
+                <li>低延遲、高吞吐量</li>
+                <li>支持多可用區域冗餘</li>
+            </ul>
+        </li>
+        <li>S3 智能分層
+            <ul>
+                <li>自動優化成本</li>
+                <li>根據訪問模式在標準和不頻繁訪問層之間移動對象</li>
+                <li>無性能影響</li>
+                <li>無檢索費用</li>
+            </ul>
+        </li>
+        <li>S3 標準 - 不頻繁訪問 (S3 Standard-IA)
+            <ul>
+                <li>適合不經常訪問但需要快速訪問的數據</li>
+                <li>比標準存儲成本低，但有檢索費用</li>
+                <li>適合備份、長期存儲</li>
+                <li>最低存儲持續時間：30 天</li>
+            </ul>
+        </li>
+        <li>S3 單區域 - 不頻繁訪問 (S3 One Zone-IA)
+            <ul>
+                <li>數據存儲在單個可用區</li>
+                <li>比 S3 Standard-IA 成本低 20%</li>
+                <li>適合可重新創建的數據</li>
+                <li>最低存儲持續時間：30 天</li>
+            </ul>
+        </li>
+        <li>S3 Glacier 即時檢索
+            <ul>
+                <li>適合每季度訪問一次的歸檔數據</li>
+                <li>毫秒級檢索時間</li>
+                <li>比 S3 Standard-IA 成本低</li>
+                <li>最低存儲持續時間：90 天</li>
+            </ul>
+        </li>
+        <li>S3 Glacier 靈活檢索
+            <ul>
+                <li>適合長期歸檔，偶爾需要檢索</li>
+                <li>檢索時間：1 分鐘到 12 小時</li>
+                <li>比即時檢索成本低</li>
+                <li>最低存儲持續時間：90 天</li>
+            </ul>
+        </li>
+        <li>S3 Glacier 深度歸檔
+            <ul>
+                <li>最低成本存儲類別</li>
+                <li>適合很少訪問的長期保存</li>
+                <li>檢索時間：12 到 48 小時</li>
+                <li>最低存儲持續時間：180 天</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <div class="important">
+        <p>成本優化：根據數據訪問模式選擇合適的存儲類別可以顯著降低成本。使用生命週期策略自動在不同存儲類別之間轉換對象，或使用 S3 智能分層自動優化成本。</p>
+    </div>
+    
+    <h3>數據管理功能</h3>
+    <ul>
+        <li>生命週期管理
+            <ul>
+                <li>自動轉換存儲類別</li>
+                <li>自動刪除過期對象</li>
+                <li>基於前綴、標籤或對象大小配置規則</li>
+                <li>可以應用於整個存儲桶或對象子集</li>
+            </ul>
+        </li>
+        <li>版本控制
+            <ul>
+                <li>保留對象的多個版本</li>
+                <li>防止意外刪除和覆蓋</li>
+                <li>可以恢復刪除的對象</li>
+                <li>可以與生命週期規則結合使用</li>
+            </ul>
+        </li>
+        <li>複製和複製
+            <ul>
+                <li>跨區域複製 (CRR)：跨區域複製對象</li>
+                <li>同區域複製 (SRR)：在同一區域內複製對象</li>
+                <li>可以更改存儲類別和所有權</li>
+                <li>可以與版本控制結合使用</li>
+            </ul>
+        </li>
+        <li>對象鎖定
+            <ul>
+                <li>防止對象被刪除或覆蓋</li>
+                <li>合規模式：不可覆蓋或刪除</li>
+                <li>治理模式：特殊權限可以覆蓋保護</li>
+                <li>法定保留：防止刪除，直到明確移除</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <h3>安全性</h3>
+    <ul>
+        <li>訪問控制
+            <ul>
+                <li>IAM 策略：基於身份的訪問控制</li>
+                <li>存儲桶策略：基於資源的訪問控制</li>
+                <li>訪問控制列表 (ACL)：基於對象級別的訪問控制</li>
+                <li>預簽名 URL：臨時訪問</li>
+            </ul>
+        </li>
+        <li>加密
+            <ul>
+                <li>服務器端加密 (SSE)
+                    <ul>
+                        <li>SSE-S3：使用 Amazon S3 管理的密鑰</li>
+                        <li>SSE-KMS：使用 AWS KMS 管理的密鑰</li>
+                        <li>SSE-C：使用客戶提供的密鑰</li>
+                    </ul>
+                </li>
+                <li>客戶端加密：在上傳前加密數據</li>
+                <li>默認加密：自動加密新對象</li>
+            </ul>
+        </li>
+        <li>網絡安全
+            <ul>
+                <li>VPC 端點：私有訪問 S3</li>
+                <li>存儲桶策略限制 IP 和 VPC 端點</li>
+                <li>阻止公共訪問設置</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <div class="note">
+        <p>考試要點：了解不同存儲類別的特點和成本，以及如何使用生命週期策略優化成本。理解 S3 的安全機制，特別是不同加密選項和訪問控制方法。</p>
+    </div>
+    
+    <h3>性能優化</h3>
+    <ul>
+        <li>請求速率
+            <ul>
+                <li>每個前綴每秒 3,500 個 PUT/COPY/POST/DELETE 請求</li>
+                <li>每個前綴每秒 5,500 個 GET/HEAD 請求</li>
+                <li>通過使用隨機前綴或鍵名稱分區提高性能</li>
+            </ul>
+        </li>
+        <li>傳輸加速
+            <ul>
+                <li>使用 CloudFront 的全球分布式邊緣節點</li>
+                <li>加速上傳和下載</li>
+                <li>適合跨地理位置傳輸大文件</li>
+            </ul>
+        </li>
+        <li>多部分上傳
+            <ul>
+                <li>並行上傳對象的多個部分</li>
+                <li>提高吞吐量和恢復能力</li>
+                <li>推薦用於大於 100MB 的對象</li>
+            </ul>
+        </li>
+        <li>S3 Select
+            <ul>
+                <li>僅檢索對象的一部分</li>
+                <li>減少傳輸的數據量</li>
+                <li>提高查詢性能</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <h2>Amazon EBS (彈性塊存儲)</h2>
+    
+    <h3>卷類型</h3>
+    <ul>
+        <li>通用型 SSD (gp2/gp3)
+            <ul>
+                <li>平衡價格和性能</li>
+                <li>適合啟動卷、開發和測試環境</li>
+                <li>gp3：獨立配置 IOPS 和吞吐量</li>
+                <li>gp2：性能與卷大小掛鉤</li>
+            </ul>
+        </li>
+        <li>預置 IOPS SSD (io1/io2)
+            <ul>
+                <li>高性能、低延遲</li>
+                <li>適合 I/O 密集型工作負載</li>
+                <li>io2 Block Express：最高性能</li>
+                <li>支持多附加（僅限 io1/io2）</li>
+            </ul>
+        </li>
+        <li>吞吐量優化型 HDD (st1)
+            <ul>
+                <li>低成本 HDD 卷</li>
+                <li>適合頻繁訪問、吞吐量密集型工作負載</li>
+                <li>不能用作啟動卷</li>
+            </ul>
+        </li>
+        <li>冷 HDD (sc1)
+            <ul>
+                <li>最低成本 HDD 卷</li>
+                <li>適合不頻繁訪問的工作負載</li>
+                <li>不能用作啟動卷</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <div class="important">
+        <p>選擇指南：根據工作負載的 IOPS、吞吐量和成本需求選擇合適的 EBS 卷類型。對於數據庫等 I/O 密集型應用，選擇 io1/io2；對於大數據處理等吞吐量密集型應用，選擇 st1；對於一般用途，選擇 gp2/gp3。</p>
+    </div>
+    
+    <h3>快照和備份</h3>
+    <ul>
+        <li>EBS 快照
+            <ul>
+                <li>卷的時間點備份</li>
+                <li>增量備份 - 只存儲變更的數據</li>
+                <li>存儲在 S3 中（不可直接訪問）</li>
+                <li>可以跨區域複製</li>
+            </ul>
+        </li>
+        <li>快照生命週期管理
+            <ul>
+                <li>自動創建和刪除快照</li>
+                <li>基於時間表或事件</li>
+                <li>可以設置保留策略</li>
+            </ul>
+        </li>
+        <li>快照歸檔
+            <ul>
+                <li>將快照移至歸檔層</li>
+                <li>降低長期存儲成本</li>
+                <li>恢復時間：24-72 小時</li>
+            </ul>
+        </li>
+        <li>快照鎖定
+            <ul>
+                <li>防止意外或惡意刪除</li>
+                <li>設置保留期</li>
+                <li>合規模式或治理模式</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <h3>高級功能</h3>
+    <ul>
+        <li>多附加
+            <ul>
+                <li>將單個 EBS 卷附加到多個 EC2 實例</li>
+                <li>僅支持 io1/io2 卷</li>
+                <li>所有實例必須在同一可用區</li>
+                <li>需要集群文件系統</li>
+            </ul>
+        </li>
+        <li>快速快照恢復 (FSR)
+            <ul>
+                <li>消除從快照恢復的卷的初始性能損失</li>
+                <li>適合需要快速恢復的關鍵工作負載</li>
+                <li>按快照和可用區收費</li>
+            </ul>
+        </li>
+        <li>彈性卷
+            <ul>
+                <li>動態修改卷類型、大小和性能</li>
+                <li>無需停止實例或分離卷</li>
+                <li>只能增加卷大小，不能減小</li>
+            </ul>
+        </li>
+        <li>加密
+            <ul>
+                <li>使用 AWS KMS 密鑰加密</li>
+                <li>加密卷的快照自動加密</li>
+                <li>可以設置默認加密</li>
+                <li>最小性能影響</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <div class="note">
+        <p>考試要點：了解不同 EBS 卷類型的性能特點和使用場景，以及如何使用快照進行備份和恢復。理解 EBS 加密和多附加等高級功能的應用場景。</p>
+    </div>
+    
+    <h2>Amazon EFS (彈性文件系統)</h2>
+    
+    <h3>基本概念</h3>
+    <ul>
+        <li>完全托管的彈性 NFS 文件系統
+            <ul>
+                <li>自動擴展，無需預置容量</li>
+                <li>支持 NFSv4.1 協議</li>
+                <li>可以從多個 EC2 實例同時訪問</li>
+                <li>跨可用區高可用性</li>
+            </ul>
+        </li>
+        <li>性能模式
+            <ul>
+                <li>通用模式：默認，平衡延遲和吞吐量</li>
+                <li>最大 I/O 模式：高吞吐量，略高延遲</li>
+            </ul>
+        </li>
+        <li>吞吐量模式
+            <ul>
+                <li>突增吞吐量：基於存儲大小的吞吐量</li>
+                <li>預置吞吐量：獨立於存儲大小的固定吞吐量</li>
+                <li>彈性吞吐量：自動擴展吞吐量</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <h3>存儲類別</h3>
+    <ul>
+        <li>EFS 標準
+            <ul>
+                <li>默認存儲類別</li>
+                <li>適合頻繁訪問的文件</li>
+                <li>跨多個可用區存儲數據</li>
+            </ul>
+        </li>
+        <li>EFS 不頻繁訪問 (IA)
+            <ul>
+                <li>適合不經常訪問的文件</li>
+                <li>成本比標準低約 85%</li>
+                <li>有檢索費用</li>
+            </ul>
+        </li>
+        <li>EFS 單區域
+            <ul>
+                <li>數據存儲在單個可用區</li>
+                <li>比標準存儲成本低約 47%</li>
+                <li>適合不需要多可用區彈性的工作負載</li>
+            </ul>
+        </li>
+        <li>EFS 單區域不頻繁訪問
+            <ul>
+                <li>單可用區 + 不頻繁訪問</li>
+                <li>最低成本 EFS 存儲類別</li>
+                <li>適合不頻繁訪問且不需要多可用區彈性的數據</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <div class="important">
+        <p>成本優化：使用生命週期管理自動將不經常訪問的文件轉移到 IA 存儲類別。如果不需要多可用區彈性，考慮使用單區域存儲類別降低成本。</p>
+    </div>
+    
+    <h3>安全性</h3>
+    <ul>
+        <li>網絡訪問控制
+            <ul>
+                <li>VPC 安全組</li>
+                <li>NFS 級別訪問控制</li>
+                <li>IAM 身份驗證</li>
+            </ul>
+        </li>
+        <li>加密
+            <ul>
+                <li>傳輸中加密：使用 TLS</li>
+                <li>靜態加密：使用 KMS 密鑰</li>
+                <li>創建時啟用，無法更改</li>
+            </ul>
+        </li>
+        <li>訪問點
+            <ul>
+                <li>為應用程序提供特定目錄視圖</li>
+                <li>強制執行用戶身份</li>
+                <li>限制根目錄訪問</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <h3>備份和恢復</h3>
+    <ul>
+        <li>AWS Backup 集成
+            <ul>
+                <li>自動備份 EFS 文件系統</li>
+                <li>設置備份計劃和保留策略</li>
+                <li>跨區域備份</li>
+            </ul>
+        </li>
+        <li>時間點恢復
+            <ul>
+                <li>恢復到特定時間點</li>
+                <li>創建新的文件系統</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <div class="note">
+        <p>考試要點：了解 EFS 與 EBS 的區別，特別是在多實例訪問和跨可用區可用性方面。理解不同存儲類別和性能模式的適用場景，以及如何優化成本和性能。</p>
+    </div>
+    
+    <h2>AWS Storage Gateway</h2>
+    
+    <h3>類型和用例</h3>
+    <ul>
+        <li>S3 文件網關
+            <ul>
+                <li>通過 NFS/SMB 協議訪問 S3</li>
+                <li>本地緩存提供低延遲訪問</li>
+                <li>適合文件共享、數據遷移</li>
+            </ul>
+        </li>
+        <li>FSx 文件網關
+            <ul>
+                <li>提供對 Amazon FSx for Windows File Server 的低延遲訪問</li>
+                <li>本地緩存常用數據</li>
+                <li>適合 Windows 文件共享</li>
+            </ul>
+        </li>
+        <li>卷網關
+            <ul>
+                <li>iSCSI 塊存儲接口</li>
+                <li>數據存儲在 S3，作為 EBS 快照備份</li>
+                <li>適合備份、災難恢復</li>
+            </ul>
+        </li>
+        <li>磁帶網關
+            <ul>
+                <li>虛擬磁帶庫 (VTL) 接口</li>
+                <li>與現有備份軟件兼容</li>
+                <li>數據存儲在 S3 和 Glacier</li>
+                <li>適合長期歸檔和替換物理磁帶</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <h3>部署選項</h3>
+    <ul>
+        <li>虛擬機設備
+            <ul>
+                <li>在 VMware ESXi、Microsoft Hyper-V 或 KVM 上運行</li>
+                <li>在本地數據中心部署</li>
+            </ul>
+        </li>
+        <li>硬件設備
+            <ul>
+                <li>物理硬件設備</li>
+                <li>預配置 Storage Gateway 軟件</li>
+                <li>適合無法運行虛擬機的環境</li>
+            </ul>
+        </li>
+        <li>Amazon EC2 實例
+            <ul>
+                <li>在 AWS 雲中運行</li>
+                <li>通過 Direct Connect 或 VPN 連接到本地環境</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <div class="important">
+        <p>混合雲存儲：Storage Gateway 是構建混合雲存儲架構的關鍵組件，允許本地應用程序無縫訪問 AWS 存儲服務，同時保持低延遲訪問和與現有系統的兼容性。</p>
+    </div>
+    
+    <h2>AWS Snow 系列</h2>
+    
+    <h3>設備類型</h3>
+    <ul>
+        <li>Snowcone
+            <ul>
+                <li>最小的 Snow 設備</li>
+                <li>8TB 存儲容量</li>
+                <li>適合邊緣計算和數據傳輸</li>
+                <li>可以通過 AWS DataSync 在線傳輸數據</li>
+            </ul>
+        </li>
+        <li>Snowball Edge
+            <ul>
+                <li>存儲優化：80TB 存儲容量</li>
+                <li>計算優化：42TB 存儲容量，更強大的計算能力</li>
+                <li>支持 EC2 兼容實例</li>
+                <li>適合大規模數據遷移和邊緣計算</li>
+            </ul>
+        </li>
+        <li>Snowmobile
+            <ul>
+                <li>移動數據中心</li>
+                <li>每個 Snowmobile 可傳輸高達 100PB 數據</li>
+                <li>適合大規模數據中心遷移</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <h3>用例</h3>
+    <ul>
+        <li>大規模數據遷移
+            <ul>
+                <li>將 PB 級數據遷移到 AWS</li>
+                <li>適合網絡帶寬有限的情況</li>
+                <li>比互聯網傳輸更快、更經濟</li>
+            </ul>
+        </li>
+        <li>邊緣計算
+            <ul>
+                <li>在網絡連接有限的位置運行應用程序</li>
+                <li>支持 EC2 兼容實例和 AWS Lambda</li>
+                <li>可以在本地處理數據並僅發送結果</li>
+            </ul>
+        </li>
+        <li>災難恢復
+            <ul>
+                <li>將數據備份到 AWS</li>
+                <li>在災難恢復站點預先部署設備</li>
+            </ul>
+        </li>
+        <li>數據中心退役
+            <ul>
+                <li>關閉數據中心時遷移數據</li>
+                <li>適合一次性大規模遷移</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <div class="note">
+        <p>考試要點：了解何時使用 Snow 系列設備而不是通過互聯網傳輸數據，以及如何選擇合適的 Snow 設備類型。理解 Storage Gateway 的不同類型及其適用場景。</p>
+    </div>
+
+    <div class="nav">
+        <a href="03-計算服務.html">上一章：計算服務</a>
+        <a href="05-數據庫服務.html">下一章：數據庫服務</a>
+    </div>
+</body>
+</html>

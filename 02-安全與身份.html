@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AWS SAP 學習指南 - 安全與身份</title>
+    <style>
+        body {
+            font-family: "Microsoft JhengHei", Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+        }
+        h1 {
+            color: #0066cc;
+            text-align: center;
+            border-bottom: 2px solid #0066cc;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #0066cc;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+            margin-top: 30px;
+        }
+        h3 {
+            color: #0066cc;
+            margin-top: 20px;
+        }
+        ul {
+            padding-left: 20px;
+        }
+        li {
+            margin-bottom: 10px;
+        }
+        .note {
+            background-color: #f8f9fa;
+            border-left: 4px solid #0066cc;
+            padding: 10px;
+            margin: 15px 0;
+        }
+        .important {
+            background-color: #fff8dc;
+            border-left: 4px solid #ffa500;
+            padding: 10px;
+            margin: 15px 0;
+        }
+        a {
+            color: #0066cc;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+            padding: 10px 0;
+            border-top: 1px solid #ddd;
+            border-bottom: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <div class="nav">
+        <a href="01-網絡架構.html">上一章：網絡架構</a>
+        <a href="03-計算服務.html">下一章：計算服務</a>
+    </div>
+
+    <h1>安全與身份</h1>
+    
+    <div class="important">
+        <p>安全與身份是 AWS SAP 考試的重要內容，涉及 IAM、加密、安全服務和合規性等關鍵知識點。AWS 共同責任模型是理解 AWS 安全性的基礎。</p>
+    </div>
+    
+    <h2>IAM (身份和訪問管理)</h2>
+    
+    <h3>IAM 用戶、組和角色</h3>
+    <ul>
+        <li>用戶：代表使用 AWS 的個人或服務
+            <ul>
+                <li>每個用戶有唯一的安全憑證</li>
+                <li>可以是人類用戶或系統用戶</li>
+                <li>應遵循最小權限原則</li>
+            </ul>
+        </li>
+        <li>組：用戶的集合，便於權限管理
+            <ul>
+                <li>將策略附加到組而不是單個用戶</li>
+                <li>用戶可以屬於多個組</li>
+                <li>簡化權限管理</li>
+            </ul>
+        </li>
+        <li>角色：可由用戶、應用程序或 AWS 服務臨時擔任的身份
+            <ul>
+                <li>提供臨時安全憑證</li>
+                <li>用於跨賬戶訪問</li>
+                <li>用於 EC2 實例和其他 AWS 服務的權限</li>
+                <li>支持聯合身份用戶</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <div class="note">
+        <p>考試要點：了解何時使用 IAM 用戶、組和角色。特別是角色在跨賬戶訪問和為 AWS 服務提供權限方面的應用。</p>
+    </div>
+    
+    <h3>IAM 策略</h3>
+    <ul>
+        <li>基於 JSON 的權限策略文檔</li>
+        <li>策略類型：
+            <ul>
+                <li>身份策略：附加到 IAM 身份（用戶、組或角色）</li>
+                <li>資源策略：附加到資源（如 S3 存儲桶、SQS 隊列）</li>
+                <li>服務控制策略 (SCP)：用於 AWS Organizations</li>
+                <li>權限邊界：設置身份可以擁有的最大權限</li>
+            </ul>
+        </li>
+        <li>策略評估邏輯：
+            <ul>
+                <li>默認拒絕所有請求</li>
+                <li>顯式允許覆蓋默認拒絕</li>
+                <li>顯式拒絕覆蓋任何允許</li>
+                <li>同時評估所有適用的策略</li>
+            </ul>
+        </li>
+        <li>策略元素：
+            <ul>
+                <li>Effect：Allow 或 Deny</li>
+                <li>Action：服務和操作</li>
+                <li>Resource：操作適用的資源</li>
+                <li>Condition：何時應用策略</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <div class="important">
+        <p>最佳實踐：遵循最小權限原則，只授予完成任務所需的最小權限。使用 IAM Access Analyzer 識別過於寬鬆的權限。</p>
+    </div>
+    
+    <h3>跨賬戶訪問</h3>
+    <ul>
+        <li>使用 IAM 角色實現跨賬戶訪問
+            <ul>
+                <li>在目標賬戶中創建角色</li>
+                <li>在角色信任策略中指定源賬戶</li>
+                <li>源賬戶中的用戶或服務可以擔任該角色</li>
+            </ul>
+        </li>
+        <li>資源策略允許其他賬戶訪問資源
+            <ul>
+                <li>適用於支持資源策略的服務（如 S3、SNS、SQS）</li>
+                <li>可以直接在策略中指定外部賬戶</li>
+            </ul>
+        </li>
+        <li>AWS Organizations 提供集中管理多個 AWS 賬戶
+            <ul>
+                <li>使用服務控制策略 (SCP) 限制成員賬戶的權限</li>
+                <li>集中管理和治理</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <h3>聯合身份驗證</h3>
+    <ul>
+        <li>支持與企業身份提供商集成 (SAML 2.0)
+            <ul>
+                <li>與 Active Directory、Okta、OneLogin 等集成</li>
+                <li>用戶使用現有的企業憑證登錄</li>
+                <li>無需創建 IAM 用戶</li>
+            </ul>
+        </li>
+        <li>AWS Single Sign-On (SSO) 提供集中管理用戶訪問
+            <ul>
+                <li>集中管理多個 AWS 賬戶的訪問</li>
+                <li>與 Active Directory 和其他 IdP 集成</li>
+                <li>基於屬性的訪問控制</li>
+            </ul>
+        </li>
+        <li>支持 Web 身份聯合 (如 Amazon, Facebook, Google)
+            <ul>
+                <li>使用 Amazon Cognito 簡化移動和 Web 應用的身份驗證</li>
+                <li>支持匿名訪問</li>
+                <li>提供用戶池和身份池</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <div class="note">
+        <p>考試要點：了解不同聯合身份驗證方法的適用場景，特別是企業用戶和移動/Web 應用用戶的不同解決方案。</p>
+    </div>
+    
+    <h2>數據加密</h2>
+    
+    <h3>靜態加密</h3>
+    <ul>
+        <li>S3 支持服務器端加密
+            <ul>
+                <li>SSE-S3：使用 Amazon S3 管理的密鑰</li>
+                <li>SSE-KMS：使用 AWS KMS 管理的密鑰</li>
+                <li>SSE-C：使用客戶提供的密鑰</li>
+                <li>可以使用存儲桶策略強制加密</li>
+            </ul>
+        </li>
+        <li>EBS 卷加密
+            <ul>
+                <li>使用 KMS 密鑰加密</li>
+                <li>可以設置默認加密</li>
+                <li>加密卷的快照自動加密</li>
+            </ul>
+        </li>
+        <li>RDS 和 DynamoDB 加密
+            <ul>
+                <li>RDS 支持靜態加密和 TDE（透明數據加密）</li>
+                <li>DynamoDB 支持表級加密</li>
+                <li>可以使用 AWS 管理的密鑰或客戶管理的密鑰</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <h3>傳輸中加密</h3>
+    <ul>
+        <li>HTTPS/TLS 用於 API 和網站
+            <ul>
+                <li>AWS Certificate Manager 提供免費的 SSL/TLS 證書</li>
+                <li>與 CloudFront 和 ALB 集成</li>
+            </ul>
+        </li>
+        <li>VPN 和 Direct Connect 提供加密連接
+            <ul>
+                <li>Site-to-Site VPN 提供 IPsec 加密</li>
+                <li>Direct Connect 可以與 VPN 結合使用提供加密</li>
+            </ul>
+        </li>
+        <li>PrivateLink 提供私有連接，避免通過公共互聯網</li>
+    </ul>
+    
+    <div class="important">
+        <p>合規要求：許多合規標準（如 PCI DSS、HIPAA）要求數據在靜態和傳輸中都必須加密。了解如何在 AWS 上實現端到端加密。</p>
+    </div>
+    
+    <h3>AWS Key Management Service (KMS)</h3>
+    <ul>
+        <li>創建和管理加密密鑰
+            <ul>
+                <li>客戶主密鑰 (CMK) 用於加密數據</li>
+                <li>支持對稱和非對稱密鑰</li>
+                <li>密鑰永不離開 KMS 未加密</li>
+            </ul>
+        </li>
+        <li>密鑰類型
+            <ul>
+                <li>AWS 管理的密鑰：由 AWS 服務自動創建和管理</li>
+                <li>客戶管理的密鑰：由客戶創建和管理</li>
+                <li>AWS 擁有的密鑰：由 AWS 擁有和管理，客戶無法查看或管理</li>
+                <li>自定義密鑰存儲：使用外部密鑰管理系統</li>
+            </ul>
+        </li>
+        <li>密鑰策略和授權
+            <ul>
+                <li>密鑰策略控制對密鑰的訪問</li>
+                <li>授權允許臨時訪問</li>
+                <li>支持多區域密鑰</li>
+            </ul>
+        </li>
+        <li>與多種 AWS 服務集成
+            <ul>
+                <li>S3、EBS、RDS、DynamoDB 等</li>
+                <li>支持信封加密</li>
+            </ul>
+        </li>
+        <li>密鑰輪換
+            <ul>
+                <li>AWS 管理的密鑰自動每年輪換</li>
+                <li>客戶管理的密鑰可以配置自動輪換</li>
+                <li>輪換保留舊版本的密鑰用於解密</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <div class="note">
+        <p>考試要點：了解 KMS 密鑰類型和使用場景，特別是客戶管理的密鑰與 AWS 管理的密鑰的區別，以及密鑰策略的配置。</p>
+    </div>
+    
+    <h3>AWS Secrets Manager</h3>
+    <ul>
+        <li>安全存儲和管理敏感信息，如數據庫憑證
+            <ul>
+                <li>集中管理密碼、API 密鑰和其他機密</li>
+                <li>使用 KMS 加密機密</li>
+                <li>支持細粒度的訪問控制</li>
+            </ul>
+        </li>
+        <li>支持自動輪換密鑰
+            <ul>
+                <li>內置對 RDS、Redshift 和 DocumentDB 的支持</li>
+                <li>可以使用 Lambda 函數自定義輪換邏輯</li>
+                <li>減少硬編碼憑證的風險</li>
+            </ul>
+        </li>
+        <li>與 RDS、Redshift 和 DocumentDB 集成
+            <ul>
+                <li>自動生成和管理數據庫憑證</li>
+                <li>支持多用戶和多環境</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <h2>安全服務</h2>
+    
+    <h3>AWS Shield</h3>
+    <ul>
+        <li>提供 DDoS 防護
+            <ul>
+                <li>Shield Standard：免費提供基本保護</li>
+                <li>Shield Advanced：提供高級保護和 24x7 響應團隊</li>
+                <li>保護 EC2、ELB、CloudFront、Global Accelerator 和 Route 53</li>
+            </ul>
+        </li>
+        <li>Shield Standard
+            <ul>
+                <li>自動包含在所有 AWS 服務中</li>
+                <li>防禦常見的網絡和傳輸層 DDoS 攻擊</li>
+                <li>無需額外費用</li>
+            </ul>
+        </li>
+        <li>Shield Advanced
+            <ul>
+                <li>提供更高級的保護</li>
+                <li>包括 24x7 DDoS 響應團隊</li>
+                <li>與 AWS WAF 集成提供應用層保護</li>
+                <li>提供成本保護，防止 DDoS 攻擊期間的流量峰值費用</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <h3>AWS WAF (Web 應用程序防火牆)</h3>
+    <ul>
+        <li>保護 Web 應用程序免受常見 Web 漏洞攻擊
+            <ul>
+                <li>防禦 SQL 注入、跨站腳本 (XSS) 等攻擊</li>
+                <li>基於規則控制 Web 流量</li>
+                <li>支持速率限制</li>
+            </ul>
+        </li>
+        <li>可以與 CloudFront、ALB 或 API Gateway 集成
+            <ul>
+                <li>保護全球或區域性的應用程序</li>
+                <li>支持 IPv4 和 IPv6 流量</li>
+            </ul>
+        </li>
+        <li>支持自定義規則和托管規則
+            <ul>
+                <li>AWS 托管規則提供預配置的保護</li>
+                <li>AWS Marketplace 中的第三方規則</li>
+                <li>自定義規則滿足特定需求</li>
+            </ul>
+        </li>
+        <li>Web ACL (訪問控制列表)
+            <ul>
+                <li>定義規則和操作</li>
+                <li>可以允許、阻止或計數匹配的請求</li>
+                <li>支持基於地理位置的限制</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <div class="important">
+        <p>安全最佳實踐：結合使用 AWS Shield 和 AWS WAF 提供全面的 DDoS 和 Web 應用程序保護。Shield 防禦網絡和傳輸層攻擊，WAF 防禦應用層攻擊。</p>
+    </div>
+    
+    <h3>AWS Firewall Manager</h3>
+    <ul>
+        <li>集中配置和管理防火牆規則
+            <ul>
+                <li>跨多個賬戶統一管理安全策略</li>
+                <li>自動應用規則到新資源</li>
+                <li>集中監控合規性</li>
+            </ul>
+        </li>
+        <li>跨多個賬戶和應用程序應用規則
+            <ul>
+                <li>管理 WAF 規則</li>
+                <li>管理 Shield Advanced 保護</li>
+                <li>管理 VPC 安全組</li>
+                <li>管理 Network Firewall 策略</li>
+            </ul>
+        </li>
+        <li>與 AWS Organizations 集成
+            <ul>
+                <li>按組織單位 (OU) 應用策略</li>
+                <li>支持集中合規報告</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <h3>Amazon GuardDuty</h3>
+    <ul>
+        <li>威脅檢測服務，持續監控惡意活動
+            <ul>
+                <li>使用機器學習、異常檢測和威脅情報</li>
+                <li>無需部署額外的安全軟件或基礎設施</li>
+                <li>持續監控和分析</li>
+            </ul>
+        </li>
+        <li>分析 VPC 流日誌、CloudTrail 和 DNS 日誌
+            <ul>
+                <li>檢測未經授權的訪問</li>
+                <li>識別可疑的 API 調用</li>
+                <li>發現惡意域名和 IP 地址</li>
+            </ul>
+        </li>
+        <li>使用機器學習識別異常行為
+            <ul>
+                <li>檢測加密貨幣挖礦</li>
+                <li>識別憑證洩露</li>
+                <li>發現異常 API 調用模式</li>
+            </ul>
+        </li>
+        <li>與 EventBridge 集成實現自動響應
+            <ul>
+                <li>自動修復受損資源</li>
+                <li>通知安全團隊</li>
+                <li>觸發自定義響應工作流</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <h3>AWS Config</h3>
+    <ul>
+        <li>評估、審計和評價資源配置
+            <ul>
+                <li>持續監控和記錄 AWS 資源配置</li>
+                <li>評估資源配置是否符合最佳實踐</li>
+                <li>追踪資源關係和配置歷史</li>
+            </ul>
+        </li>
+        <li>記錄配置更改並提供合規性檢查
+            <ul>
+                <li>創建配置快照</li>
+                <li>查看資源配置時間線</li>
+                <li>評估資源是否符合規則</li>
+            </ul>
+        </li>
+        <li>支持自定義規則和修復操作
+            <ul>
+                <li>使用 AWS 托管規則</li>
+                <li>創建自定義規則（使用 Lambda）</li>
+                <li>自動修復不合規資源</li>
+            </ul>
+        </li>
+        <li>多賬戶、多區域數據聚合
+            <ul>
+                <li>集中查看合規狀態</li>
+                <li>跨賬戶和區域應用規則</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <div class="note">
+        <p>考試要點：了解 AWS Config 如何與其他安全服務（如 Security Hub、CloudTrail）協同工作，提供全面的安全態勢管理。</p>
+    </div>
+
+    <div class="nav">
+        <a href="01-網絡架構.html">上一章：網絡架構</a>
+        <a href="03-計算服務.html">下一章：計算服務</a>
+    </div>
+</body>
+</html>

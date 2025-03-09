@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AWS SAP 學習指南 - 高可用性與災難恢復</title>
+    <style>
+        body {
+            font-family: "Microsoft JhengHei", Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+        }
+        h1 {
+            color: #0066cc;
+            text-align: center;
+            border-bottom: 2px solid #0066cc;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #0066cc;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+            margin-top: 30px;
+        }
+        h3 {
+            color: #0066cc;
+            margin-top: 20px;
+        }
+        ul {
+            padding-left: 20px;
+        }
+        li {
+            margin-bottom: 10px;
+        }
+        .note {
+            background-color: #f8f9fa;
+            border-left: 4px solid #0066cc;
+            padding: 10px;
+            margin: 15px 0;
+        }
+        .important {
+            background-color: #fff8dc;
+            border-left: 4px solid #ffa500;
+            padding: 10px;
+            margin: 15px 0;
+        }
+        a {
+            color: #0066cc;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+            padding: 10px 0;
+            border-top: 1px solid #ddd;
+            border-bottom: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <div class="nav">
+        <a href="08-成本優化.html">上一章：成本優化</a>
+        <a href="10-監控與運維.html">下一章：監控與運維</a>
+    </div>
+
+    <h1>高可用性與災難恢復</h1>
+    
+    <div class="important">
+        <p>高可用性和災難恢復是 AWS Well-Architected Framework 的可靠性支柱的核心，SAP 考試中涉及設計彈性架構、實施多層容錯機制和制定有效的災難恢復策略的能力。</p>
+    </div>
+    
+    <h2>高可用性基礎概念</h2>
+    
+    <h3>可靠性支柱概述</h3>
+    <ul>
+        <li>定義
+            <ul>
+                <li>系統在預期條件下正確執行的能力</li>
+                <li>從基礎設施或服務中斷中恢復的能力</li>
+                <li>動態獲取計算資源以滿足需求的能力</li>
+                <li>緩解配置錯誤或臨時網絡問題等中斷的能力</li>
+            </ul>
+        </li>
+        <li>設計原則
+            <ul>
+                <li>自動從故障中恢復</li>
+                <li>測試恢復程序</li>
+                <li>水平擴展以增加聚合系統可用性</li>
+                <li>停止猜測容量</li>
+                <li>通過自動化管理變更</li>
+            </ul>
+        </li>
+        <li>關鍵領域
+            <ul>
+                <li>基礎設施</li>
+                <li>工作負載架構</li>
+                <li>變更管理</li>
+                <li>故障管理</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <h3>可用性指標</h3>
+    <ul>
+        <li>可用性百分比
+            <ul>
+                <li>99.9%（三個九）：每年停機時間約 8.76 小時</li>
+                <li>99.95%（三個半九）：每年停機時間約 4.38 小時</li>
+                <li>99.99%（四個九）：每年停機時間約 52.56 分鐘</li>
+                <li>99.999%（五個九）：每年停機時間約 5.26 分鐘</li>
+            </ul>
+        </li>
+        <li>平均故障間隔時間 (MTBF)
+            <ul>
+                <li>系統正常運行的平均時間</li>
+                <li>衡量系統可靠性的指標</li>
+                <li>計算方法：總運行時間 / 故障次數</li>
+            </ul>
+        </li>
+        <li>平均恢復時間 (MTTR)
+            <ul>
+                <li>系統從故障恢復所需的平均時間</li>
+                <li>衡量系統彈性的指標</li>
+                <li>計算方法：總恢復時間 / 故障次數</li>
+            </ul>
+        </li>
+        <li>恢復點目標 (RPO)
+            <ul>
+                <li>可接受的數據丟失量</li>
+                <li>以時間為單位（例如 1 小時、15 分鐘）</li>
+                <li>影響備份頻率</li>
+            </ul>
+        </li>
+        <li>恢復時間目標 (RTO)
+            <ul>
+                <li>可接受的系統停機時間</li>
+                <li>以時間為單位（例如 4 小時、30 分鐘）</li>
+                <li>影響災難恢復策略</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <h3>故障模式和影響分析</h3>
+    <ul>
+        <li>故障模式類型
+            <ul>
+                <li>硬件故障：服務器、網絡設備、存儲設備</li>
+                <li>軟件故障：應用程序錯誤、操作系統問題</li>
+                <li>網絡故障：連接問題、路由問題</li>
+                <li>數據中心故障：電力中斷、冷卻系統故障</li>
+                <li>區域故障：自然災害、大規模服務中斷</li>
+            </ul>
+        </li>
+        <li>單點故障 (SPOF)
+            <ul>
+                <li>識別系統中的單點故障</li>
+                <li>評估故障影響</li>
+                <li>實施冗餘和故障轉移機制</li>
+                <li>定期測試故障場景</li>
+            </ul>
+        </li>
+        <li>故障隔離
+            <ul>
+                <li>故障域：限制故障影響範圍的邊界</li>
+                <li>隔離設計：防止故障級聯</li>
+                <li>分區和隔板模式</li>
+                <li>服務邊界和 API 設計</li>
+            </ul>
+        </li>
+        <li>彈性設計
+            <ul>
+                <li>優雅降級：在部分組件故障時保持核心功能</li>
+                <li>自我修復：自動檢測和恢復故障</li>
+                <li>過載保護：限流和熔斷機制</li>
+                <li>冗餘和多樣性：避免共同模式故障</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <div class="note">
+        <p>考試要點：了解可靠性支柱的設計原則和關鍵領域，能夠計算和解釋可用性指標，以及識別和緩解不同類型的故障模式。理解故障隔離和彈性設計的重要性。</p>
+    </div>
+    
+    <h2>AWS 高可用性架構</h2>
+    
+    <h3>AWS 全球基礎設施</h3>
+    <ul>
+        <li>區域 (Region)
+            <ul>
+                <li>地理隔離的數據中心集群</li>
+                <li>完全獨立運營</li>
+                <li>跨區域數據複製需要顯式配置</li>
+                <li>用於災難恢復和地理分佈</li>
+            </ul>
+        </li>
+        <li>可用區 (Availability Zone, AZ)
+            <ul>
+                <li>一個或多個物理數據中心</li>
+                <li>獨立電源、網絡和冷卻</li>
+                <li>通過低延遲網絡連接</li>
+                <li>用於高可用性設計</li>
+            </ul>
+        </li>
+        <li>本地區域 (Local Zone)
+            <ul>
+                <li>靠近用戶的基礎設施部署</li>
+                <li>低延遲計算、存儲和數據庫服務</li>
+                <li>與父區域連接</li>
+                <li>用於延遲敏感的應用程序</li>
+            </ul>
+        </li>
+        <li>邊緣位置 (Edge Location)
+            <ul>
+                <li>全球分佈的 CDN 節點</li>
+                <li>用於 CloudFront 和 Route 53</li>
+                <li>減少延遲並提高性能</li>
+                <li>提供 DDoS 保護</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <h3>計算服務高可用性</h3>
+    <ul>
+        <li>EC2 高可用性
+            <ul>
+                <li>跨可用區部署實例</li>
+                <li>使用 Auto Scaling 自動替換故障實例</li>
+                <li>使用彈性 IP 地址實現快速故障轉移</li>
+                <li>使用 EC2 Auto Recovery 自動恢復受損實例</li>
+            </ul>
+        </li>
+        <li>Auto Scaling
+            <ul>
+                <li>維持最小實例數量</li>
+                <li>跨可用區平衡分佈</li>
+                <li>基於健康檢查替換不健康實例</li>
+                <li>結合 ELB 實現負載均衡</li>
+            </ul>
+        </li>
+        <li>容器服務高可用性
+            <ul>
+                <li>ECS：跨可用區任務放置</li>
+                <li>EKS：跨可用區節點組</li>
+                <li>使用服務自動擴展</li>
+                <li>實施健康檢查和自動恢復</li>
+            </ul>
+        </li>
+        <li>無服務器高可用性
+            <ul>
+                <li>Lambda：自動跨可用區部署</li>
+                <li>使用預置並發提高可用性</li>
+                <li>實施重試和死信隊列</li>
+                <li>使用 Step Functions 協調工作流</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <div class="important">
+        <p>多可用區設計：AWS 的高可用性架構基於多可用區部署。每個可用區都是獨立的故障域，具有獨立的電源、網絡和冷卻系統。通過跨多個可用區部署資源，可以防止單個數據中心故障導致應用程序中斷。大多數 AWS 服務都提供內置的多可用區功能或可以配置為跨可用區運行。</p>
+    </div>
+    
+    <h3>存儲服務高可用性</h3>
+    <ul>
+        <li>S3 高可用性
+            <ul>
+                <li>自動跨多個可用區複製數據</li>
+                <li>99.99% 可用性 SLA</li>
+                <li>版本控制防止意外刪除</li>
+                <li>跨區域複製 (CRR) 提供額外保護</li>
+            </ul>
+        </li>
+        <li>EBS 高可用性
+            <ul>
+                <li>在單個可用區內自動複製</li>
+                <li>使用快照備份到 S3</li>
+                <li>跨可用區複製快照</li>
+                <li>使用多可用區架構提高可用性</li>
+            </ul>
+        </li>
+        <li>EFS 高可用性
+            <ul>
+                <li>自動跨多個可用區存儲數據</li>
+                <li>高可用性掛載目標</li>
+                <li>支持同時訪問</li>
+                <li>備份到 AWS Backup</li>
+            </ul>
+        </li>
+        <li>Storage Gateway 高可用性
+            <ul>
+                <li>本地緩存提高可用性</li>
+                <li>與 S3 和 EBS 集成</li>
+                <li>支持 VMware HA</li>
+                <li>多網關部署</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <h3>數據庫服務高可用性</h3>
+    <ul>
+        <li>RDS 高可用性
+            <ul>
+                <li>多可用區部署：同步複製到備用實例</li>
+                <li>自動故障轉移（通常 1-2 分鐘）</li>
+                <li>自動備份和時間點恢復</li>
+                <li>讀取副本提高讀取可擴展性</li>
+            </ul>
+        </li>
+        <li>Aurora 高可用性
+            <ul>
+                <li>跨三個可用區的六個數據副本</li>
+                <li>自動檢測和替換故障節點</li>
+                <li>自動故障轉移（通常 < 30 秒）</li>
+                <li>Aurora Global Database 跨區域複製</li>
+            </ul>
+        </li>
+        <li>DynamoDB 高可用性
+            <ul>
+                <li>自動跨三個可用區複製數據</li>
+                <li>無需手動配置高可用性</li>
+                <li>全局表提供跨區域複製</li>
+                <li>時間點恢復和按需備份</li>
+            </ul>
+        </li>
+        <li>ElastiCache 高可用性
+            <ul>
+                <li>多可用區複製組</li>
+                <li>自動故障檢測和恢復</li>
+                <li>Redis 集群模式提高可用性</li>
+                <li>自動備份和恢復</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <div class="note">
+        <p>考試要點：了解 AWS 全球基礎設施的組成和特點，能夠設計利用多可用區和多區域架構的高可用性解決方案。理解不同 AWS 服務的高可用性特性和最佳實踐。</p>
+    </div>
+    
+    <h2>網絡和負載均衡</h2>
+    
+    <h3>VPC 設計</h3>
+    <ul>
+        <li>多可用區子網
+            <ul>
+                <li>在每個可用區創建公共和私有子網</li>
+                <li>跨可用區分佈資源</li>
+                <li>實施網絡 ACL 和安全組</li>
+                <li>使用路由表控制流量</li>
+            </ul>
+        </li>
+        <li>VPC 對等連接
+            <ul>
+                <li>連接不同 VPC</li>
+                <li>跨區域 VPC 對等</li>
+                <li>路由表配置</li>
+                <li>安全組考慮</li>
+            </ul>
+        </li>
+        <li>Transit Gateway
+            <ul>
+                <li>集中式網絡連接</li>
+                <li>簡化複雜網絡拓撲</li>
+                <li>跨區域對等</li>
+                <li>路由表和路由傳播</li>
+            </ul>
+        </li>
+        <li>混合連接
+            <ul>
+                <li>Direct Connect：專用網絡連接</li>
+                <li>Site-to-Site VPN：加密隧道</li>
+                <li>冗餘連接設計</li>
+                <li>故障轉移配置</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <h3>負載均衡</h3>
+    <ul>
+        <li>Elastic Load Balancing (ELB)
+            <ul>
+                <li>自動跨多個可用區分佈流量</li>
+                <li>健康檢查和自動移除不健康實例</li>
+                <li>與 Auto Scaling 集成</li>
+                <li>支持會話粘性</li>
+            </ul>
+        </li>
+        <li>Application Load Balancer (ALB)
+            <ul>
+                <li>基於內容的路由</li>
+                <li>支持路徑和主機名路由</li>
+                <li>支持 WebSocket 和 HTTP/2</li>
+                <li>與 AWS WAF 集成</li>
+            </ul>
+        </li>
+        <li>Network Load Balancer (NLB)
+            <ul>
+                <li>超高性能和低延遲</li>
+                <li>靜態 IP 地址</li>
+                <li>支持 TCP、UDP 和 TLS</li>
+                <li>跨可用區負載均衡</li>
+            </ul>
+        </li>
+        <li>Global Accelerator
+            <ul>
+                <li>全球 Anycast IP 地址</li>
+                <li>跨區域負載均衡</li>
+                <li>自動故障轉移</li>
+                <li>健康檢查和流量拆分</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <h3>DNS 和流量管理</h3>
+    <ul>
+        <li>Route 53
+            <ul>
+                <li>全球分佈的 DNS 服務</li>
+                <li>100% 可用性 SLA</li>
+                <li>健康檢查和故障轉移</li>
+                <li>地理位置和延遲路由</li>
+            </ul>
+        </li>
+        <li>Route 53 路由策略
+            <ul>
+                <li>簡單路由：單一資源</li>
+                <li>加權路由：流量分配</li>
+                <li>延遲路由：最低延遲</li>
+                <li>故障轉移路由：主備配置</li>
+                <li>地理位置路由：基於用戶位置</li>
+                <li>多值應答路由：返回多個健康資源</li>
+            </ul>
+        </li>
+        <li>DNS 故障轉移
+            <ul>
+                <li>配置健康檢查</li>
+                <li>主備記錄設置</li>
+                <li>跨區域故障轉移</li>
+                <li>DNS TTL 考慮</li>
+            </ul>
+        </li>
+        <li>CloudFront
+            <ul>
+                <li>全球內容分發網絡</li>
+                <li>多源站配置</li>
+                <li>源站故障轉移</li>
+                <li>與 Route 53 集成</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <div class="important">
+        <p>負載均衡最佳實踐：在設計高可用性架構時，負載均衡器是關鍵組件。使用 ELB 跨多個可用區分佈流量，配置健康檢查以檢測和移除不健康的實例，並與 Auto Scaling 集成以自動調整容量。對於全球應用程序，結合使用 Route 53 和 CloudFront 或 Global Accelerator 實現跨區域負載均衡和故障轉移。</p>
+    </div>
+    
+    <h2>災難恢復策略</h2>
+    
+    <h3>災難恢復基礎</h3>
+    <ul>
+        <li>災難類型
+            <ul>
+                <li>自然災害：地震、洪水、颶風</li>
+                <li>技術故障：硬件故障、軟件錯誤</li>
+                <li>人為錯誤：配置錯誤、意外刪除</li>
+                <li>安全事件：網絡攻擊、數據泄露</li>
+            </ul>
+        </li>
+        <li>災難恢復計劃 (DRP)
+            <ul>
+                <li>風險評估和業務影響分析</li>
+                <li>恢復策略和程序</li>
+                <li>角色和責任</li>
+                <li>測試和演練</li>
+                <li>持續改進</li>
+            </ul>
+        </li>
+        <li>業務連續性計劃 (BCP)
+            <ul>
+                <li>關鍵業務功能識別</li>
+                <li>最大可接受停機時間</li>
+                <li>替代工作場所和遠程工作</li>
+                <li>溝通計劃</li>
+                <li>與災難恢復計劃的關係</li>
+            </ul>
+        </li>
+        <li>災難恢復測試
+            <ul>
+                <li>桌面演練：討論和審查</li>
+                <li>演練：模擬特定組件故障</li>
+                <li>並行測試：在備用環境測試</li>
+                <li>完全中斷測試：切換到備用環境</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <h3>AWS 災難恢復模式</h3>
+    <ul>
+        <li>備份和恢復
+            <ul>
+                <li>RTO：小時級</li>
+                <li>成本：$</li>
+                <li>方法：定期備份到 S3，需要時恢復</li>
+                <li>適用場景：非關鍵應用程序</li>
+            </ul>
+        </li>
+        <li>試點光
+            <ul>
+                <li>RTO：數十分鐘到小時級</li>
+                <li>成本：$$</li>
+                <li>方法：維護最小核心基礎設施，需要時擴展</li>
+                <li>適用場景：中等重要性應用程序</li>
+            </ul>
+        </li>
+        <li>溫備
+            <ul>
+                <li>RTO：分鐘級</li>
+                <li>成本：$$$</li>
+                <li>方法：維護運行中的複製環境，規模較小</li>
+                <li>適用場景：重要業務應用程序</li>
+            </ul>
+        </li>
+        <li>熱備
+            <ul>
+                <li>RTO：秒到分鐘級</li>
+                <li>成本：$$$$</li>
+                <li>方法：完全運行的冗餘環境，自動故障轉移</li>
+                <li>適用場景：關鍵業務應用程序</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <h3>AWS 災難恢復服務</h3>
+    <ul>
+        <li>AWS Backup
+            <ul>
+                <li>集中管理和自動化備份</li>
+                <li>跨區域備份</li>
+                <li>基於策略的備份計劃</li>
+                <li>支持多種 AWS 服務</li>
+            </ul>
+        </li>
+        <li>CloudEndure Disaster Recovery
+            <ul>
+                <li>持續數據複製</li>
+                <li>最小 RPO</li>
+                <li>自動化故障轉移和回切</li>
+                <li>支持物理、虛擬和雲服務器</li>
+            </ul>
+        </li>
+        <li>AWS Elastic Disaster Recovery
+            <ul>
+                <li>低成本災難恢復</li>
+                <li>持續數據複製</li>
+                <li>快速恢復</li>
+                <li>定期災難恢復演練</li>
+            </ul>
+        </li>
+        <li>AWS Site-to-Site VPN
+            <ul>
+                <li>加密連接</li>
+                <li>支持 IPsec 協議</li>
+                <li>高可用性 VPN 連接</li>
+                <li>與 Transit Gateway 集成</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <div class="note">
+        <p>考試要點：了解不同的災難恢復策略及其 RTO、RPO 和成本特性，能夠為不同類型的應用程序選擇合適的災難恢復方法。理解 AWS 提供的災難恢復服務和工具，以及如何實施和測試災難恢復計劃。</p>
+    </div>
+    
+    <h2>實施高可用性架構</h2>
+    
+    <h3>多區域架構</h3>
+    <ul>
+        <li>主動-被動配置
+            <ul>
+                <li>主區域處理所有流量</li>
+                <li>備用區域準備接管</li>
+                <li>使用 Route 53 故障轉移路由</li>
+                <li>數據複製到備用區域</li>
+            </ul>
+        </li>
+        <li>主動-主動配置
+            <ul>
+                <li>多個區域同時處理流量</li>
+                <li>使用 Route 53 加權或延遲路由</li>
+                <li>數據雙向複製</li>
+                <li>處理數據一致性挑戰</li>
+            </ul>
+        </li>
+        <li>數據複製策略
+            <ul>
+                <li>同步複製：強一致性，但可能影響性能</li>
+                <li>異步複製：性能更好，但可能有數據丟失</li>
+                <li>跨區域複製服務：S3 CRR、DynamoDB 全局表</li>
+                <li>數據庫複製：Aurora Global Database、RDS 跨區域只讀副本</li>
+            </ul>
+        </li>
+        <li>全球流量管理
+            <ul>
+                <li>Route 53 流量路由策略</li>
+                <li>CloudFront 分發內容</li>
+                <li>Global Accelerator 優化網絡路徑</li>
+                <li>邊緣計算：Lambda@Edge 和 CloudFront Functions</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <h3>無狀態應用程序設計</h3>
+    <ul>
+        <li>無狀態原則
+            <ul>
+                <li>請求之間不保留客戶端數據</li>
+                <li>每個請求包含所有必要信息</li>
+                <li>更容易擴展和恢復</li>
+                <li>支持任何服務器處理請求</li>
+            </ul>
+        </li>
+        <li>會話管理
+            <ul>
+                <li>外部會話存儲：DynamoDB、ElastiCache</li>
+                <li>客戶端會話存儲：Cookie、LocalStorage</li>
+                <li>會話粘性：僅在必要時使用</li>
+                <li>會話複製：在服務器之間同步</li>
+            </ul>
+        </li>
+        <li>數據持久化
+            <ul>
+                <li>使用外部數據存儲</li>
+                <li>分離計算和存儲</li>
+                <li>使用託管數據庫服務</li>
+                <li>實施數據緩存</li>
+            </ul>
+        </li>
+        <li>API 設計
+            <ul>
+                <li>RESTful API 設計</li>
+                <li>API 版本控制</li>
+                <li>幂等操作</li>
+                <li>錯誤處理和重試</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <h3>彈性模式</h3>
+    <ul>
+        <li>斷路器模式
+            <ul>
+                <li>防止對失敗服務的持續調用</li>
+                <li>快速失敗而不是等待超時</li>
+                <li>允許服務恢復</li>
+                <li>實現：AWS AppConfig 功能標誌</li>
+            </ul>
+        </li>
+        <li>重試模式
+            <ul>
+                <li>處理臨時故障</li>
+                <li>指數退避和抖動</li>
+                <li>最大重試次數</li>
+                <li>實現：AWS SDK 自動重試</li>
+            </ul>
+        </li>
+        <li>隔板模式
+            <ul>
+                <li>隔離資源池</li>
+                <li>防止級聯故障</li>
+                <li>限制故障影響範圍</li>
+                <li>實現：獨立的 Auto Scaling 組</li>
+            </ul>
+        </li>
+        <li>限流模式
+            <ul>
+                <li>控制資源使用</li>
+                <li>防止過載</li>
+                <li>優先處理關鍵請求</li>
+                <li>實現：API Gateway 用量計劃</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <div class="important">
+        <p>彈性設計原則：設計高可用性系統時，應遵循"設計失敗"的原則。假設組件會失敗，並設計系統以優雅地處理這些故障。使用自動化檢測和恢復機制，實施冗餘和多樣性，並定期測試故障場景。通過實施彈性模式如斷路器、重試、隔板和限流，可以提高系統在面對各種故障時的彈性。</p>
+    </div>
+    
+    <h2>高可用性最佳實踐</h2>
+    
+    <h3>設計最佳實踐</h3>
+    <ul>
+        <li>避免單點故障
+            <ul>
+                <li>識別和消除單點故障</li>
+                <li>實施冗餘和自動故障轉移</li>
+                <li>使用多可用區和多區域部署</li>
+                <li>分散依賴關係</li>
+            </ul>
+        </li>
+        <li>自動化恢復
+            <ul>
+                <li>自動檢測故障</li>
+                <li>自動替換故障組件</li>
+                <li>自動擴展以處理負載</li>
+                <li>自動故障轉移</li>
+            </ul>
+        </li>
+        <li>鬆耦合架構
+            <ul>
+                <li>使用消息隊列解耦組件</li>
+                <li>實施事件驅動架構</li>
+                <li>使用微服務架構</li>
+                <li>定義清晰的服務邊界</li>
+            </ul>
+        </li>
+        <li>數據備份和恢復
+            <ul>
+                <li>定期備份關鍵數據</li>
+                <li>測試恢復過程</li>
+                <li>實施時間點恢復</li>
+                <li>跨區域複製備份</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <h3>運營最佳實踐</h3>
+    <ul>
+        <li>監控和警報
+            <ul>
+                <li>監控關鍵指標</li>
+                <li>設置適當的警報閾值</li>
+                <li>實施多層監控</li>
+                <li>使用 CloudWatch 和 X-Ray</li>
+            </ul>
+        </li>
+        <li>故障注入和混沌工程
+            <ul>
+                <li>模擬故障場景</li>
+                <li>測試恢復機制</li>
+                <li>使用 AWS Fault Injection Simulator</li>
+                <li>定期進行故障演練</li>
+            </ul>
+        </li>
+        <li>事件管理
+            <ul>
+                <li>定義明確的事件響應流程</li>
+                <li>建立溝通渠道</li>
+                <li>記錄和分析事件</li>
+                <li>實施事後分析和改進</li>
+            </ul>
+        </li>
+        <li>變更管理
+            <ul>
+                <li>實施基礎設施即代碼</li>
+                <li>使用藍/綠部署</li>
+                <li>實施金絲雀發布</li>
+                <li>自動化測試和部署</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <h3>高可用性案例研究</h3>
+    <ul>
+        <li>Web 應用程序
+            <ul>
+                <li>多可用區 Auto Scaling 組</li>
+                <li>ALB 進行負載均衡</li>
+                <li>無狀態應用服務器</li>
+                <li>DynamoDB 用於會話存儲</li>
+                <li>Aurora 多可用區用於數據庫</li>
+                <li>CloudFront 用於內容分發</li>
+            </ul>
+        </li>
+        <li>微服務架構
+            <ul>
+                <li>容器化服務部署在 ECS/EKS</li>
+                <li>服務發現使用 AWS App Mesh</li>
+                <li>API Gateway 用於 API 管理</li>
+                <li>SQS/SNS 用於異步通信</li>
+                <li>DynamoDB 全局表用於數據存儲</li>
+                <li>X-Ray 用於分佈式跟踪</li>
+            </ul>
+        </li>
+        <li>全球應用程序
+            <ul>
+                <li>多區域部署</li>
+                <li>Route 53 延遲路由</li>
+                <li>DynamoDB 全局表或 Aurora 全局數據庫</li>
+                <li>CloudFront 分發靜態內容</li>
+                <li>Lambda@Edge 用於邊緣計算</li>
+                <li>Global Accelerator 用於動態內容</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <div class="note">
+        <p>考試要點：了解高可用性設計和運營的最佳實踐，能夠設計和實施避免單點故障、自動恢復和鬆耦合的架構。理解不同類型應用程序的高可用性架構模式，以及如何使用 AWS 服務實現這些模式。</p>
+    </div>
+
+    <div class="nav">
+        <a href="08-成本優化.html">上一章：成本優化</a>
+        <a href="10-監控與運維.html">下一章：監控與運維</a>
+    </div>
+</body>
+</html>

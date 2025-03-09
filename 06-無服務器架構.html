@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AWS SAP 學習指南 - 無服務器架構</title>
+    <style>
+        body {
+            font-family: "Microsoft JhengHei", Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+        }
+        h1 {
+            color: #0066cc;
+            text-align: center;
+            border-bottom: 2px solid #0066cc;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #0066cc;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+            margin-top: 30px;
+        }
+        h3 {
+            color: #0066cc;
+            margin-top: 20px;
+        }
+        ul {
+            padding-left: 20px;
+        }
+        li {
+            margin-bottom: 10px;
+        }
+        .note {
+            background-color: #f8f9fa;
+            border-left: 4px solid #0066cc;
+            padding: 10px;
+            margin: 15px 0;
+        }
+        .important {
+            background-color: #fff8dc;
+            border-left: 4px solid #ffa500;
+            padding: 10px;
+            margin: 15px 0;
+        }
+        a {
+            color: #0066cc;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+            padding: 10px 0;
+            border-top: 1px solid #ddd;
+            border-bottom: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <div class="nav">
+        <a href="05-數據庫服務.html">上一章：數據庫服務</a>
+        <a href="07-遷移策略.html">下一章：遷移策略</a>
+    </div>
+
+    <h1>無服務器架構</h1>
+    
+    <div class="important">
+        <p>無服務器架構是 AWS 的現代應用開發方法，SAP 考試中涉及 Lambda、API Gateway、Step Functions 等關鍵知識點，以及如何設計可擴展、高效的無服務器應用。</p>
+    </div>
+    
+    <h2>無服務器架構概述</h2>
+    
+    <h3>無服務器計算的特點</h3>
+    <ul>
+        <li>無需管理服務器
+            <ul>
+                <li>無需配置、擴展或維護服務器</li>
+                <li>專注於應用程序代碼</li>
+                <li>減少運維負擔</li>
+            </ul>
+        </li>
+        <li>自動擴展
+            <ul>
+                <li>根據需求自動擴展</li>
+                <li>從零擴展到處理數千個並發請求</li>
+                <li>無需手動配置擴展策略</li>
+            </ul>
+        </li>
+        <li>按使用量付費
+            <ul>
+                <li>僅為實際使用的資源付費</li>
+                <li>無需為閒置資源付費</li>
+                <li>可以顯著降低成本</li>
+            </ul>
+        </li>
+        <li>高可用性
+            <ul>
+                <li>內置高可用性</li>
+                <li>跨可用區自動部署</li>
+                <li>無需額外配置</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <h3>無服務器架構的優勢</h3>
+    <ul>
+        <li>降低運維成本
+            <ul>
+                <li>無需管理基礎設施</li>
+                <li>減少人力資源需求</li>
+                <li>專注於業務邏輯</li>
+            </ul>
+        </li>
+        <li>提高開發效率
+            <ul>
+                <li>更快的上市時間</li>
+                <li>專注於功能開發</li>
+                <li>減少基礎設施代碼</li>
+            </ul>
+        </li>
+        <li>優化成本
+            <ul>
+                <li>按使用量付費</li>
+                <li>無需為閒置資源付費</li>
+                <li>自動擴展降低成本</li>
+            </ul>
+        </li>
+        <li>提高可擴展性
+            <ul>
+                <li>自動處理流量波動</li>
+                <li>無需預先規劃容量</li>
+                <li>無縫擴展</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <h3>無服務器架構的挑戰</h3>
+    <ul>
+        <li>冷啟動延遲
+            <ul>
+                <li>首次調用時的延遲</li>
+                <li>可能影響性能敏感的應用</li>
+                <li>可以通過預熱和佈置並發來緩解</li>
+            </ul>
+        </li>
+        <li>執行時間限制
+            <ul>
+                <li>Lambda 函數最長執行時間為 15 分鐘</li>
+                <li>不適合長時間運行的任務</li>
+                <li>需要將長時間任務拆分為更小的步驟</li>
+            </ul>
+        </li>
+        <li>狀態管理
+            <ul>
+                <li>無服務器函數本質上是無狀態的</li>
+                <li>需要外部服務存儲狀態</li>
+                <li>可以使用 DynamoDB、S3 等服務</li>
+            </ul>
+        </li>
+        <li>監控和調試
+            <ul>
+                <li>分佈式系統的複雜性</li>
+                <li>需要專門的監控工具</li>
+                <li>可以使用 CloudWatch、X-Ray 等服務</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <div class="note">
+        <p>考試要點：了解無服務器架構的特點、優勢和挑戰，能夠評估何時使用無服務器架構，以及如何設計克服其限制的解決方案。</p>
+    </div>
+    
+    <h2>AWS Lambda</h2>
+    
+    <h3>基本概念</h3>
+    <ul>
+        <li>事件驅動的計算服務
+            <ul>
+                <li>響應事件執行代碼</li>
+                <li>無需管理服務器</li>
+                <li>自動擴展</li>
+                <li>按使用量付費</li>
+            </ul>
+        </li>
+        <li>支持的運行時
+            <ul>
+                <li>Node.js、Python、Java、Go、Ruby、.NET</li>
+                <li>自定義運行時</li>
+                <li>容器映像</li>
+            </ul>
+        </li>
+        <li>執行模型
+            <ul>
+                <li>事件源觸發函數</li>
+                <li>Lambda 服務管理執行環境</li>
+                <li>執行環境可能被重用（執行上下文）</li>
+                <li>冷啟動和熱啟動</li>
+            </ul>
+        </li>
+        <li>部署包
+            <ul>
+                <li>.zip 文件歸檔（最大 50MB 解壓後）</li>
+                <li>容器映像（最大 10GB）</li>
+                <li>可以包含依賴項</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <h3>配置選項</h3>
+    <ul>
+        <li>內存和 CPU
+            <ul>
+                <li>內存：128MB 到 10GB</li>
+                <li>CPU：與內存成比例分配</li>
+                <li>影響性能和成本</li>
+            </ul>
+        </li>
+        <li>超時
+            <ul>
+                <li>最長執行時間</li>
+                <li>最大 15 分鐘</li>
+                <li>超時後函數被終止</li>
+            </ul>
+        </li>
+        <li>並發
+            <ul>
+                <li>同時執行的函數實例數</li>
+                <li>預置並發：預先初始化執行環境</li>
+                <li>並發限制：控制最大並發數</li>
+            </ul>
+        </li>
+        <li>環境變量
+            <ul>
+                <li>配置函數行為</li>
+                <li>可以加密</li>
+                <li>避免硬編碼配置</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <div class="important">
+        <p>性能優化：選擇適當的內存大小對 Lambda 函數的性能至關重要。增加內存不僅提供更多 CPU 能力，還可以減少執行時間，有時甚至可以降低總體成本。使用預置並發可以消除冷啟動延遲，適合對延遲敏感的應用。</p>
+    </div>
+    
+    <h3>事件源</h3>
+    <ul>
+        <li>AWS 服務
+            <ul>
+                <li>S3：對象創建、刪除等事件</li>
+                <li>DynamoDB：流事件</li>
+                <li>Kinesis：數據流事件</li>
+                <li>SQS：消息事件</li>
+                <li>SNS：通知事件</li>
+                <li>EventBridge：計劃事件</li>
+            </ul>
+        </li>
+        <li>自定義事件
+            <ul>
+                <li>通過 API Gateway 的 HTTP 請求</li>
+                <li>通過 SDK 直接調用</li>
+                <li>通過 CLI 調用</li>
+            </ul>
+        </li>
+        <li>事件源映射
+            <ul>
+                <li>輪詢事件源並調用函數</li>
+                <li>用於 Kinesis、DynamoDB 流和 SQS</li>
+                <li>批處理記錄</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <h3>安全性</h3>
+    <ul>
+        <li>執行角色
+            <ul>
+                <li>IAM 角色定義函數的權限</li>
+                <li>遵循最小權限原則</li>
+                <li>訪問其他 AWS 服務</li>
+            </ul>
+        </li>
+        <li>VPC 集成
+            <ul>
+                <li>在 VPC 內運行函數</li>
+                <li>訪問私有資源</li>
+                <li>使用安全組和子網</li>
+            </ul>
+        </li>
+        <li>加密
+            <ul>
+                <li>傳輸中加密：HTTPS/TLS</li>
+                <li>靜態加密：環境變量</li>
+                <li>使用 KMS 密鑰</li>
+            </ul>
+        </li>
+        <li>資源策略
+            <ul>
+                <li>控制誰可以調用函數</li>
+                <li>基於資源的策略</li>
+                <li>跨賬戶訪問</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <div class="note">
+        <p>考試要點：了解 Lambda 的執行模型、配置選項和事件源，特別是如何優化性能和成本。理解 Lambda 的安全性配置，包括執行角色和 VPC 集成。</p>
+    </div>
+    
+    <h2>Amazon API Gateway</h2>
+    
+    <h3>基本概念</h3>
+    <ul>
+        <li>完全托管的 API 管理服務
+            <ul>
+                <li>創建、發布、維護、監控和保護 API</li>
+                <li>作為應用程序的"前門"</li>
+                <li>處理身份驗證、授權、流量管理等</li>
+            </ul>
+        </li>
+        <li>API 類型
+            <ul>
+                <li>REST API：基於資源的 API</li>
+                <li>HTTP API：更簡單、更低成本的 REST API</li>
+                <li>WebSocket API：雙向通信</li>
+            </ul>
+        </li>
+        <li>端點類型
+            <ul>
+                <li>邊緣優化：通過 CloudFront 分發</li>
+                <li>區域：在特定區域內使用</li>
+                <li>私有：只能從 VPC 內訪問</li>
+            </ul>
+        </li>
+        <li>集成類型
+            <ul>
+                <li>Lambda 函數</li>
+                <li>HTTP 端點</li>
+                <li>其他 AWS 服務</li>
+                <li>模擬集成</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <h3>API 設計和實現</h3>
+    <ul>
+        <li>資源和方法
+            <ul>
+                <li>資源：API 的 URL 路徑</li>
+                <li>方法：HTTP 動詞（GET、POST 等）</li>
+                <li>方法請求和響應</li>
+            </ul>
+        </li>
+        <li>請求/響應轉換
+            <ul>
+                <li>映射模板：轉換請求和響應</li>
+                <li>使用 Velocity 模板語言</li>
+                <li>JSON 路徑表達式</li>
+            </ul>
+        </li>
+        <li>階段和部署
+            <ul>
+                <li>階段：API 的不同版本（開發、測試、生產）</li>
+                <li>部署：將 API 快照發布到階段</li>
+                <li>階段變量：環境特定配置</li>
+            </ul>
+        </li>
+        <li>自定義域名
+            <ul>
+                <li>使用自己的域名</li>
+                <li>需要 ACM 證書</li>
+                <li>基本路徑映射</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <div class="important">
+        <p>API 類型選擇：對於大多數 RESTful API，HTTP API 提供更低的延遲和成本。對於需要更高級功能（如請求/響應轉換、API 密鑰等）的場景，選擇 REST API。對於需要雙向通信的場景，選擇 WebSocket API。</p>
+    </div>
+    
+    <h3>安全性</h3>
+    <ul>
+        <li>身份驗證和授權
+            <ul>
+                <li>IAM 角色和策略</li>
+                <li>Lambda 授權方</li>
+                <li>Cognito 用戶池</li>
+                <li>API 密鑰</li>
+            </ul>
+        </li>
+        <li>資源策略
+            <ul>
+                <li>控制誰可以訪問 API</li>
+                <li>基於源 IP、VPC 端點等</li>
+                <li>跨賬戶訪問</li>
+            </ul>
+        </li>
+        <li>WAF 集成
+            <ul>
+                <li>保護 API 免受常見 Web 攻擊</li>
+                <li>速率限制</li>
+                <li>地理限制</li>
+            </ul>
+        </li>
+        <li>私有 API
+            <ul>
+                <li>只能從 VPC 內訪問</li>
+                <li>使用 VPC 端點</li>
+                <li>增強安全性</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <h3>監控和性能</h3>
+    <ul>
+        <li>CloudWatch 指標
+            <ul>
+                <li>API 調用次數</li>
+                <li>延遲</li>
+                <li>錯誤率</li>
+                <li>自定義指標</li>
+            </ul>
+        </li>
+        <li>訪問日誌
+            <ul>
+                <li>詳細的請求和響應信息</li>
+                <li>可以發送到 CloudWatch Logs</li>
+                <li>用於審計和故障排除</li>
+            </ul>
+        </li>
+        <li>X-Ray 集成
+            <ul>
+                <li>跟踪請求</li>
+                <li>識別性能瓶頸</li>
+                <li>可視化服務圖</li>
+            </ul>
+        </li>
+        <li>緩存
+            <ul>
+                <li>減少後端調用</li>
+                <li>提高性能</li>
+                <li>降低成本</li>
+                <li>可配置 TTL</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <div class="note">
+        <p>考試要點：了解不同類型的 API 和端點，以及它們的適用場景。理解 API Gateway 的安全機制，特別是不同的身份驗證和授權方法。熟悉 API Gateway 的監控和性能優化選項。</p>
+    </div>
+    
+    <h2>AWS Step Functions</h2>
+    
+    <h3>基本概念</h3>
+    <ul>
+        <li>無服務器工作流服務
+            <ul>
+                <li>協調多個 AWS 服務</li>
+                <li>使用視覺化工作流（狀態機）</li>
+                <li>支持順序、並行、條件和錯誤處理</li>
+            </ul>
+        </li>
+        <li>工作流類型
+            <ul>
+                <li>標準工作流：最長運行時間 1 年，精確一次執行</li>
+                <li>快速工作流：最長運行時間 5 分鐘，至少一次執行</li>
+            </ul>
+        </li>
+        <li>狀態機
+            <ul>
+                <li>使用 Amazon States Language (ASL) 定義</li>
+                <li>JSON 格式</li>
+                <li>可視化編輯器</li>
+                <li>版本控制</li>
+            </ul>
+        </li>
+        <li>執行
+            <ul>
+                <li>狀態機的單次運行</li>
+                <li>輸入和輸出數據</li>
+                <li>執行歷史</li>
+                <li>可以啟動新執行</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <h3>狀態類型</h3>
+    <ul>
+        <li>任務狀態
+            <ul>
+                <li>執行工作單元</li>
+                <li>調用 Lambda 函數、其他 AWS 服務或 HTTP 端點</li>
+                <li>等待任務完成</li>
+            </ul>
+        </li>
+        <li>選擇狀態
+            <ul>
+                <li>基於輸入數據做出決策</li>
+                <li>支持複雜條件</li>
+                <li>分支工作流</li>
+            </ul>
+        </li>
+        <li>並行狀態
+            <ul>
+                <li>並行執行分支</li>
+                <li>等待所有分支完成</li>
+                <li>聚合結果</li>
+            </ul>
+        </li>
+        <li>映射狀態
+            <ul>
+                <li>對數組中的每個項目執行相同的步驟</li>
+                <li>並行或串行執行</li>
+                <li>處理集合數據</li>
+            </ul>
+        </li>
+        <li>等待狀態
+            <ul>
+                <li>暫停執行一段時間</li>
+                <li>固定時間或到特定時間點</li>
+                <li>實現延遲或計劃任務</li>
+            </ul>
+        </li>
+        <li>成功/失敗狀態
+            <ul>
+                <li>標記執行成功或失敗</li>
+                <li>可以返回結果</li>
+                <li>終止執行</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <div class="important">
+        <p>工作流設計：Step Functions 非常適合協調複雜的業務流程，特別是需要人工審批、長時間運行或需要協調多個服務的流程。使用標準工作流處理長時間運行的流程，使用快速工作流處理需要低延遲的短期流程。</p>
+    </div>
+    
+    <h3>錯誤處理</h3>
+    <ul>
+        <li>重試
+            <ul>
+                <li>自動重試失敗的任務</li>
+                <li>可配置重試次數和間隔</li>
+                <li>指數退避</li>
+                <li>特定錯誤類型的重試策略</li>
+            </ul>
+        </li>
+        <li>捕獲
+            <ul>
+                <li>處理錯誤並繼續執行</li>
+                <li>可以轉到特定狀態</li>
+                <li>特定錯誤類型的處理</li>
+                <li>回退策略</li>
+            </ul>
+        </li>
+        <li>錯誤輸出
+            <ul>
+                <li>將錯誤信息作為輸出</li>
+                <li>用於診斷和故障排除</li>
+                <li>可以傳遞給後續狀態</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <h3>集成和使用場景</h3>
+    <ul>
+        <li>服務集成
+            <ul>
+                <li>直接與 200 多個 AWS 服務集成</li>
+                <li>SDK 集成：使用 AWS SDK 調用</li>
+                <li>優化集成：特定服務的優化調用</li>
+            </ul>
+        </li>
+        <li>使用場景
+            <ul>
+                <li>數據處理工作流</li>
+                <li>IT 自動化</li>
+                <li>微服務協調</li>
+                <li>機器學習管道</li>
+                <li>訂單處理</li>
+                <li>人工審批流程</li>
+            </ul>
+        </li>
+        <li>事件驅動集成
+            <ul>
+                <li>EventBridge 觸發工作流</li>
+                <li>API Gateway 調用工作流</li>
+                <li>工作流觸發事件</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <div class="note">
+        <p>考試要點：了解 Step Functions 的狀態類型和它們的用途，特別是如何使用不同的狀態類型構建複雜的工作流。理解錯誤處理機制，包括重試和捕獲策略。熟悉 Step Functions 的集成選項和常見使用場景。</p>
+    </div>
+    
+    <h2>其他無服務器服務</h2>
+    
+    <h3>Amazon EventBridge</h3>
+    <ul>
+        <li>無服務器事件總線
+            <ul>
+                <li>路由事件到目標</li>
+                <li>基於規則匹配事件</li>
+                <li>連接應用程序組件</li>
+            </ul>
+        </li>
+        <li>事件源
+            <ul>
+                <li>AWS 服務</li>
+                <li>自定義應用程序</li>
+                <li>SaaS 應用程序</li>
+                <li>計劃事件</li>
+            </ul>
+        </li>
+        <li>事件模式
+            <ul>
+                <li>基於 JSON 的模式匹配</li>
+                <li>匹配事件屬性</li>
+                <li>過濾事件</li>
+            </ul>
+        </li>
+        <li>目標
+            <ul>
+                <li>Lambda 函數</li>
+                <li>Step Functions 狀態機</li>
+                <li>SQS 隊列</li>
+                <li>SNS 主題</li>
+                <li>其他 AWS 服務</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <h3>Amazon SQS 和 SNS</h3>
+    <ul>
+        <li>SQS (簡單隊列服務)
+            <ul>
+                <li>完全托管的消息隊列</li>
+                <li>解耦應用程序組件</li>
+                <li>標準隊列：高吞吐量，至少一次傳遞</li>
+                <li>FIFO 隊列：嚴格順序，精確一次處理</li>
+            </ul>
+        </li>
+        <li>SNS (簡單通知服務)
+            <ul>
+                <li>發布/訂閱消息傳遞</li>
+                <li>一對多通信</li>
+                <li>支持多種協議（HTTP、電子郵件、SQS、Lambda 等）</li>
+                <li>標準主題和 FIFO 主題</li>
+            </ul>
+        </li>
+        <li>與 Lambda 集成
+            <ul>
+                <li>SQS 作為 Lambda 的事件源</li>
+                <li>Lambda 作為 SNS 的訂閱者</li>
+                <li>構建事件驅動架構</li>
+            </ul>
+        </li>
+        <li>無服務器應用模式
+            <ul>
+                <li>扇出模式：一個事件觸發多個處理</li>
+                <li>事件緩衝：處理突發流量</li>
+                <li>工作隊列：分配任務</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <h3>Amazon Cognito</h3>
+    <ul>
+        <li>用戶池
+            <ul>
+                <li>用戶目錄和身份提供商</li>
+                <li>註冊和登錄功能</li>
+                <li>支持社交身份提供商</li>
+                <li>多因素身份驗證</li>
+            </ul>
+        </li>
+        <li>身份池
+            <ul>
+                <li>提供臨時 AWS 憑證</li>
+                <li>訪問 AWS 服務</li>
+                <li>支持匿名訪問</li>
+                <li>與用戶池集成</li>
+            </ul>
+        </li>
+        <li>與 API Gateway 和 Lambda 集成
+            <ul>
+                <li>保護 API 訪問</li>
+                <li>基於用戶身份授權</li>
+                <li>無服務器身份驗證</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <h3>AWS AppSync</h3>
+    <ul>
+        <li>托管的 GraphQL 服務
+            <ul>
+                <li>創建可擴展的 API</li>
+                <li>實時數據同步</li>
+                <li>離線數據訪問</li>
+            </ul>
+        </li>
+        <li>數據源
+            <ul>
+                <li>Lambda 函數</li>
+                <li>DynamoDB 表</li>
+                <li>RDS 數據庫</li>
+                <li>HTTP 端點</li>
+                <li>OpenSearch 服務</li>
+            </ul>
+        </li>
+        <li>解析器
+            <ul>
+                <li>連接 GraphQL 操作和數據源</li>
+                <li>使用 VTL 或 JavaScript</li>
+                <li>轉換請求和響應</li>
+            </ul>
+        </li>
+        <li>實時功能
+            <ul>
+                <li>WebSocket 連接</li>
+                <li>訂閱操作</li>
+                <li>實時數據更新</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <h3>AWS SAM 和 Serverless Framework</h3>
+    <ul>
+        <li>AWS SAM (Serverless Application Model)
+            <ul>
+                <li>開源框架</li>
+                <li>簡化無服務器應用開發</li>
+                <li>擴展 CloudFormation</li>
+                <li>本地測試和調試</li>
+            </ul>
+        </li>
+        <li>Serverless Framework
+            <ul>
+                <li>第三方開源框架</li>
+                <li>多雲支持</li>
+                <li>豐富的插件生態系統</li>
+                <li>簡化部署和管理</li>
+            </ul>
+        </li>
+        <li>基礎設施即代碼
+            <ul>
+                <li>聲明式資源定義</li>
+                <li>版本控制</li>
+                <li>可重複部署</li>
+                <li>環境一致性</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <div class="note">
+        <p>考試要點：了解不同無服務器服務的特點和使用場景，特別是如何將它們組合起來構建完整的無服務器應用。理解 EventBridge、SQS/SNS、Cognito 和 AppSync 的關鍵功能和集成選項。</p>
+    </div>
+    
+    <h2>無服務器架構模式</h2>
+    
+    <h3>常見架構模式</h3>
+    <ul>
+        <li>Web 應用和 API
+            <ul>
+                <li>API Gateway + Lambda + DynamoDB</li>
+                <li>靜態內容存儲在 S3</li>
+                <li>CloudFront 分發</li>
+                <li>Cognito 身份驗證</li>
+            </ul>
+        </li>
+        <li>數據處理
+            <ul>
+                <li>S3 事件觸發 Lambda</li>
+                <li>Kinesis 流處理</li>
+                <li>Step Functions 協調複雜工作流</li>
+                <li>結果存儲在 S3 或 DynamoDB</li>
+            </ul>
+        </li>
+        <li>實時處理
+            <ul>
+                <li>IoT Core 或 Kinesis 接收數據</li>
+                <li>Lambda 處理數據</li>
+                <li>WebSocket API 或 AppSync 推送更新</li>
+                <li>DynamoDB 存儲狀態</li>
+            </ul>
+        </li>
+        <li>事件驅動架構
+            <ul>
+                <li>EventBridge 路由事件</li>
+                <li>SQS/SNS 解耦組件</li>
+                <li>Lambda 處理事件</li>
+                <li>Step Functions 協調工作流</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <h3>最佳實踐</h3>
+    <ul>
+        <li>函數設計
+            <ul>
+                <li>單一職責原則</li>
+                <li>保持函數小而專注</li>
+                <li>重用執行上下文</li>
+                <li>優化冷啟動</li>
+            </ul>
+        </li>
+        <li>安全性
+            <ul>
+                <li>最小權限原則</li>
+                <li>使用環境變量存儲配置</li>
+                <li>使用 Secrets Manager 存儲敏感信息</li>
+                <li>啟用 X-Ray 跟踪</li>
+            </ul>
+        </li>
+        <li>可觀察性
+            <ul>
+                <li>結構化日誌</li>
+                <li>自定義指標</li>
+                <li>分布式跟踪</li>
+                <li>設置警報</li>
+            </ul>
+        </li>
+        <li>成本優化
+            <ul>
+                <li>選擇適當的內存大小</li>
+                <li>優化函數執行時間</li>
+                <li>使用預置並發</li>
+                <li>實現緩存</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <div class="important">
+        <p>架構考慮：無服務器架構非常適合事件驅動的工作負載、可變流量模式和需要快速迭代的應用。在設計無服務器架構時，考慮如何處理狀態、管理冷啟動延遲、實現錯誤處理和重試策略，以及如何監控和調試分布式系統。</p>
+    </div>
+    
+    <h3>常見挑戰和解決方案</h3>
+    <ul>
+        <li>冷啟動延遲
+            <ul>
+                <li>使用預置並發</li>
+                <li>保持函數代碼小巧</li>
+                <li>減少依賴項</li>
+                <li>使用輕量級運行時</li>
+            </ul>
+        </li>
+        <li>長時間運行的任務
+            <ul>
+                <li>使用 Step Functions 協調</li>
+                <li>將任務拆分為更小的步驟</li>
+                <li>使用 SQS 隊列</li>
+                <li>實現檢查點</li>
+            </ul>
+        </li>
+        <li>本地開發和測試
+            <ul>
+                <li>使用 AWS SAM CLI</li>
+                <li>模擬 Lambda 和其他服務</li>
+                <li>單元測試和集成測試</li>
+                <li>使用開發階段</li>
+            </ul>
+        </li>
+        <li>監控和故障排除
+            <ul>
+                <li>使用 CloudWatch Logs</li>
+                <li>啟用 X-Ray 跟踪</li>
+                <li>設置警報</li>
+                <li>實現結構化日誌</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <div class="note">
+        <p>考試要點：了解常見的無服務器架構模式和最佳實踐，能夠設計解決特定業務問題的無服務器解決方案。理解無服務器架構的常見挑戰和解決方案，特別是如何處理冷啟動延遲、長時間運行的任務和分布式系統的監控。</p>
+    </div>
+
+    <div class="nav">
+        <a href="05-數據庫服務.html">上一章：數據庫服務</a>
+        <a href="07-遷移策略.html">下一章：遷移策略</a>
+    </div>
+</body>
+</html>

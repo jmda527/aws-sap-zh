@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AWS SAP 學習指南 - 網絡架構</title>
+    <style>
+        body {
+            font-family: "Microsoft JhengHei", Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+        }
+        h1 {
+            color: #0066cc;
+            text-align: center;
+            border-bottom: 2px solid #0066cc;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #0066cc;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+            margin-top: 30px;
+        }
+        h3 {
+            color: #0066cc;
+            margin-top: 20px;
+        }
+        ul {
+            padding-left: 20px;
+        }
+        li {
+            margin-bottom: 10px;
+        }
+        .note {
+            background-color: #f8f9fa;
+            border-left: 4px solid #0066cc;
+            padding: 10px;
+            margin: 15px 0;
+        }
+        .important {
+            background-color: #fff8dc;
+            border-left: 4px solid #ffa500;
+            padding: 10px;
+            margin: 15px 0;
+        }
+        a {
+            color: #0066cc;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+            padding: 10px 0;
+            border-top: 1px solid #ddd;
+            border-bottom: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <div class="nav">
+        <a href="index.html">返回目錄</a>
+        <a href="02-安全與身份.html">下一章：安全與身份</a>
+    </div>
+
+    <h1>網絡架構</h1>
+    
+    <div class="important">
+        <p>網絡架構是 AWS SAP 考試的核心內容之一，涉及 VPC 設計、連接選項、路由策略和內容分發等關鍵知識點。</p>
+    </div>
+    
+    <h2>VPC 設計與連接</h2>
+    
+    <h3>VPC 對等連接 (VPC Peering)</h3>
+    <ul>
+        <li>允許兩個 VPC 之間的網絡連接，使資源可以跨 VPC 通信</li>
+        <li>不支持傳遞性連接 - 如果 VPC A 與 VPC B 對等，VPC B 與 VPC C 對等，VPC A 和 VPC C 之間不會自動建立連接</li>
+        <li>不能有重疊的 CIDR 塊</li>
+        <li>可以跨區域和跨賬戶建立對等連接</li>
+        <li>對等連接中的流量不會通過公共互聯網，保持私密性和安全性</li>
+    </ul>
+    
+    <div class="note">
+        <p>考試要點：了解 VPC 對等連接的限制，特別是不支持傳遞性連接的特性。當需要連接多個 VPC 時，考慮使用 Transit Gateway 作為替代方案。</p>
+    </div>
+    
+    <h3>Transit Gateway</h3>
+    <ul>
+        <li>區域性網絡中轉樞紐，可連接 VPC 和本地網絡</li>
+        <li>簡化網絡架構，避免複雜的對等連接</li>
+        <li>支持跨多個 AWS 賬戶共享</li>
+        <li>支持多區域部署和路由表隔離</li>
+        <li>可用於創建全球網絡</li>
+        <li>支持多播流量</li>
+        <li>可以與 Direct Connect 網關集成</li>
+        <li>支持 VPN 連接</li>
+    </ul>
+    
+    <div class="note">
+        <p>考試要點：Transit Gateway 是連接多個 VPC 和本地網絡的首選方式，特別是在複雜的網絡拓撲中。了解其與 Direct Connect 和 VPN 的集成方式。</p>
+    </div>
+    
+    <h3>AWS Direct Connect</h3>
+    <ul>
+        <li>提供從本地數據中心到 AWS 的專用網絡連接</li>
+        <li>支持 1Gbps 和 10Gbps 的專用連接</li>
+        <li>可以通過合作夥伴提供的託管連接獲得較低帶寬</li>
+        <li>支持公共和私有虛擬接口 (VIF)</li>
+        <li>Direct Connect Gateway 允許從本地網絡訪問多個區域的多個 VPC</li>
+        <li>為實現高可用性，應在不同位置配置多個 Direct Connect 連接</li>
+        <li>可以與 Site-to-Site VPN 結合使用，提供加密連接</li>
+    </ul>
+    
+    <div class="important">
+        <p>高可用性設計：為了實現高可用性，應該在不同位置配置多個 Direct Connect 連接，並考慮使用 Site-to-Site VPN 作為備份連接。</p>
+    </div>
+    
+    <h3>VPN 連接</h3>
+    <ul>
+        <li>Site-to-Site VPN 提供本地網絡與 AWS VPC 之間的加密連接</li>
+        <li>可以作為 Direct Connect 的備份或與 Direct Connect 結合使用</li>
+        <li>Client VPN 允許遠程用戶安全地訪問 AWS 或本地網絡</li>
+        <li>支持靜態路由和動態路由 (BGP)</li>
+        <li>VPN 連接可以連接到 Transit Gateway 或虛擬私有網關 (VGW)</li>
+    </ul>
+    
+    <h3>PrivateLink</h3>
+    <ul>
+        <li>提供 VPC 與服務之間的私有連接，無需通過公共互聯網</li>
+        <li>可用於訪問 AWS 服務或其他 AWS 賬戶中的服務</li>
+        <li>通過 VPC 端點實現，支持接口端點和網關端點</li>
+        <li>網關端點僅支持 S3 和 DynamoDB</li>
+        <li>接口端點支持大多數 AWS 服務和自定義服務</li>
+        <li>提高安全性，減少數據傳輸成本</li>
+    </ul>
+    
+    <div class="note">
+        <p>考試要點：了解何時使用 PrivateLink 而不是其他連接選項，特別是在需要私密訪問 AWS 服務或第三方服務時。</p>
+    </div>
+    
+    <h2>網絡安全與訪問控制</h2>
+    
+    <h3>安全組 (Security Groups)</h3>
+    <ul>
+        <li>作用於實例級別的虛擬防火牆</li>
+        <li>僅支持允許規則，默認拒絕所有流量</li>
+        <li>有狀態 - 允許的入站流量自動允許其響應流量</li>
+        <li>可以引用其他安全組，包括自引用</li>
+        <li>可以在多個實例之間共享</li>
+        <li>每個安全組最多可以有 60 個入站和 60 個出站規則</li>
+    </ul>
+    
+    <h3>網絡訪問控制列表 (NACL)</h3>
+    <ul>
+        <li>作用於子網級別的無狀態防火牆</li>
+        <li>支持允許和拒絕規則</li>
+        <li>規則按編號順序處理</li>
+        <li>必須同時配置入站和出站規則</li>
+        <li>每個子網只能關聯一個 NACL，但一個 NACL 可以關聯多個子網</li>
+        <li>默認 NACL 允許所有入站和出站流量</li>
+    </ul>
+    
+    <div class="important">
+        <p>安全最佳實踐：結合使用安全組和 NACL 提供多層防禦。安全組用於精細控制實例級別的訪問，NACL 用於子網級別的額外保護層。</p>
+    </div>
+    
+    <h3>NAT 網關/實例</h3>
+    <ul>
+        <li>允許私有子網中的實例訪問互聯網，但阻止互聯網發起的連接</li>
+        <li>NAT 網關是 AWS 託管服務，提供更好的可用性和帶寬</li>
+        <li>NAT 實例是自行管理的 EC2 實例，成本較低但需要自行管理</li>
+        <li>為實現高可用性，應在每個可用區部署 NAT 網關</li>
+        <li>NAT 網關支持 5Gbps 的帶寬，並可自動擴展至 45Gbps</li>
+        <li>NAT 網關不支持 IPv6 流量，對於 IPv6 應使用出口專用互聯網網關</li>
+    </ul>
+    
+    <h2>Route 53 路由策略</h2>
+    
+    <h3>路由策略類型</h3>
+    <ul>
+        <li>簡單路由：將流量路由到單一資源</li>
+        <li>加權路由：按指定比例將流量分配到多個資源</li>
+        <li>延遲路由：將流量路由到延遲最低的區域</li>
+        <li>故障轉移路由：主資源故障時自動切換到備用資源</li>
+        <li>地理位置路由：基於用戶地理位置路由流量</li>
+        <li>地理位置鄰近度路由：基於資源的物理位置路由流量</li>
+        <li>多值應答路由：返回多個健康資源的隨機選擇</li>
+    </ul>
+    
+    <div class="note">
+        <p>考試要點：了解每種路由策略的適用場景，特別是延遲路由、故障轉移路由和地理位置路由在全球部署中的應用。</p>
+    </div>
+    
+    <h3>私有託管區域</h3>
+    <ul>
+        <li>允許在 VPC 內解析自定義域名</li>
+        <li>可以跨多個 VPC 共享私有託管區域</li>
+        <li>支持 VPC 與本地網絡之間的 DNS 解析</li>
+        <li>可以使用 Route 53 Resolver 實現混合雲 DNS 解析</li>
+    </ul>
+    
+    <h2>內容分發與加速</h2>
+    
+    <h3>CloudFront</h3>
+    <ul>
+        <li>全球內容分發網絡 (CDN)，降低延遲並提高性能</li>
+        <li>支持靜態和動態內容，以及流媒體</li>
+        <li>與 AWS Shield 和 AWS WAF 集成提供 DDoS 防護</li>
+        <li>支持自定義域名和 HTTPS</li>
+        <li>區域邊緣緩存提高緩存命中率</li>
+        <li>源可以是 S3 存儲桶、EC2 實例、ELB 或自定義源</li>
+        <li>支持源訪問控制 (OAC) 和源訪問身份 (OAI) 保護 S3 源</li>
+        <li>支持地理限制功能</li>
+        <li>支持 Lambda@Edge 和 CloudFront Functions 進行邊緣計算</li>
+    </ul>
+    
+    <div class="important">
+        <p>性能優化：使用 CloudFront 不僅可以提高全球用戶的訪問速度，還可以減輕源服務器的負載，提高應用程序的可擴展性和可用性。</p>
+    </div>
+    
+    <h3>Global Accelerator</h3>
+    <ul>
+        <li>通過 AWS 全球網絡加速訪問應用程序</li>
+        <li>提供靜態 IP 地址作為應用程序的入口點</li>
+        <li>支持 TCP 和 UDP 協議</li>
+        <li>自動將流量路由到最近的健康端點</li>
+        <li>提供跨區域故障轉移</li>
+        <li>適用於非 HTTP 使用場景或需要固定 IP 地址的應用</li>
+        <li>可以加速 ALB、NLB、EC2 實例或彈性 IP</li>
+    </ul>
+    
+    <div class="note">
+        <p>考試要點：了解 CloudFront 和 Global Accelerator 的區別和適用場景。CloudFront 主要用於 HTTP/HTTPS 內容分發，而 Global Accelerator 適用於需要固定 IP 地址的 TCP/UDP 應用程序加速。</p>
+    </div>
+
+    <div class="nav">
+        <a href="index.html">返回目錄</a>
+        <a href="02-安全與身份.html">下一章：安全與身份</a>
+    </div>
+</body>
+</html>
