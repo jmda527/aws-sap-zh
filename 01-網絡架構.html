@@ -4,65 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AWS SAP 學習指南 - 網絡架構</title>
-    <style>
-        body {
-            font-family: "Microsoft JhengHei", Arial, sans-serif;
-            line-height: 1.6;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-            color: #333;
-        }
-        h1 {
-            color: #0066cc;
-            text-align: center;
-            border-bottom: 2px solid #0066cc;
-            padding-bottom: 10px;
-        }
-        h2 {
-            color: #0066cc;
-            border-bottom: 1px solid #ddd;
-            padding-bottom: 5px;
-            margin-top: 30px;
-        }
-        h3 {
-            color: #0066cc;
-            margin-top: 20px;
-        }
-        ul {
-            padding-left: 20px;
-        }
-        li {
-            margin-bottom: 10px;
-        }
-        .note {
-            background-color: #f8f9fa;
-            border-left: 4px solid #0066cc;
-            padding: 10px;
-            margin: 15px 0;
-        }
-        .important {
-            background-color: #fff8dc;
-            border-left: 4px solid #ffa500;
-            padding: 10px;
-            margin: 15px 0;
-        }
-        a {
-            color: #0066cc;
-            text-decoration: none;
-        }
-        a:hover {
-            text-decoration: underline;
-        }
-        .nav {
-            display: flex;
-            justify-content: space-between;
-            margin: 20px 0;
-            padding: 10px 0;
-            border-top: 1px solid #ddd;
-            border-bottom: 1px solid #ddd;
-        }
-    </style>
+    <link rel=stylesheet type="text/css" href="common.css">
 </head>
 <body>
     <div class="nav">
@@ -80,70 +22,372 @@
     
     <h3>VPC 對等連接 (VPC Peering)</h3>
     <ul>
-        <li>允許兩個 VPC 之間的網絡連接，使資源可以跨 VPC 通信</li>
-        <li>不支持傳遞性連接 - 如果 VPC A 與 VPC B 對等，VPC B 與 VPC C 對等，VPC A 和 VPC C 之間不會自動建立連接</li>
-        <li>不能有重疊的 CIDR 塊</li>
-        <li>可以跨區域和跨賬戶建立對等連接</li>
-        <li>對等連接中的流量不會通過公共互聯網，保持私密性和安全性</li>
+        <li>允許兩個 VPC 之間的網絡連接，使資源可以跨 VPC 通信
+            <ul>
+                <li>例如：將應用服務器 VPC 與數據庫 VPC 連接，實現安全的數據訪問</li>
+                <li>連接過程：從發起方 VPC 創建對等連接請求，接收方接受請求後建立連接</li>
+            </ul>
+        </li>
+        <li>不支持傳遞性連接 - 如果 VPC A 與 VPC B 對等，VPC B 與 VPC C 對等，VPC A 和 VPC C 之間不會自動建立連接
+            <ul>
+                <li>這意味著如果需要 VPC A 與 VPC C 通信，必須單獨建立 A 與 C 的對等連接</li>
+                <li>在大型網絡中，這會導致對等連接數量呈指數增長：n 個 VPC 需要 n(n-1)/2 個對等連接</li>
+            </ul>
+        </li>
+        <li>不能有重疊的 CIDR 塊
+            <ul>
+                <li>例如：如果 VPC A 使用 10.0.0.0/16，VPC B 不能使用 10.0.0.0/24，因為後者是前者的子集</li>
+                <li>規劃 VPC CIDR 時應考慮未來的對等連接需求，避免 IP 地址空間衝突</li>
+            </ul>
+        </li>
+        <li>可以跨區域和跨賬戶建立對等連接
+            <ul>
+                <li>跨區域對等連接允許不同地理位置的資源通信，如 us-east-1 與 eu-west-1</li>
+                <li>跨賬戶對等連接適用於多賬戶架構，如將開發環境與生產環境分離</li>
+            </ul>
+        </li>
+        <li>對等連接中的流量不會通過公共互聯網，保持私密性和安全性
+            <ul>
+                <li>所有流量都在 AWS 網絡骨幹上傳輸，提供更低的延遲和更高的吞吐量</li>
+                <li>無需加密，因為流量不會離開 AWS 網絡</li>
+            </ul>
+        </li>
     </ul>
     
     <div class="note">
         <p>考試要點：了解 VPC 對等連接的限制，特別是不支持傳遞性連接的特性。當需要連接多個 VPC 時，考慮使用 Transit Gateway 作為替代方案。</p>
+        <p>實際應用場景：</p>
+        <ul>
+            <li>微服務架構：不同服務部署在不同 VPC 中，通過對等連接進行通信</li>
+            <li>資源共享：共享中央服務（如數據庫、監控系統）給多個 VPC</li>
+            <li>賬戶隔離：在保持網絡連接的同時，將不同環境或業務單元的資源分離到不同賬戶</li>
+        </ul>
     </div>
     
     <h3>Transit Gateway</h3>
     <ul>
-        <li>區域性網絡中轉樞紐，可連接 VPC 和本地網絡</li>
-        <li>簡化網絡架構，避免複雜的對等連接</li>
-        <li>支持跨多個 AWS 賬戶共享</li>
-        <li>支持多區域部署和路由表隔離</li>
-        <li>可用於創建全球網絡</li>
-        <li>支持多播流量</li>
-        <li>可以與 Direct Connect 網關集成</li>
-        <li>支持 VPN 連接</li>
+        <li>區域性網絡中轉樞紐，可連接 VPC 和本地網絡
+            <ul>
+                <li>採用星型拓撲（hub-and-spoke）模型，Transit Gateway 作為中心，VPC 和本地網絡作為分支</li>
+                <li>每個 AWS 區域可以部署一個 Transit Gateway，通過區域間對等連接實現全球網絡</li>
+            </ul>
+        </li>
+        <li>簡化網絡架構，避免複雜的對等連接
+            <ul>
+                <li>解決 VPC 對等連接的傳遞性問題：n 個 VPC 只需 n 個連接到 Transit Gateway</li>
+                <li>集中管理路由和連接，減少配置複雜性</li>
+            </ul>
+        </li>
+        <li>支持跨多個 AWS 賬戶共享
+            <ul>
+                <li>通過 AWS Resource Access Manager (RAM) 實現跨賬戶共享</li>
+                <li>允許在組織內集中管理網絡基礎設施，同時保持賬戶隔離</li>
+            </ul>
+        </li>
+        <li>支持多區域部署和路由表隔離
+            <ul>
+                <li>可以創建多個路由表，實現網絡分段和流量隔離</li>
+                <li>例如：可以將生產 VPC 與非生產 VPC 的流量分離</li>
+            </ul>
+        </li>
+        <li>可用於創建全球網絡
+            <ul>
+                <li>通過 Transit Gateway 對等連接，可以連接不同區域的 Transit Gateway</li>
+                <li>實現全球網絡架構，支持多區域應用部署</li>
+            </ul>
+        </li>
+        <li>支持多播流量
+            <ul>
+                <li>唯一支持 IP 多播的 AWS 服務，適用於視頻分發、金融應用等場景</li>
+                <li>允許單個數據包發送到多個接收者，提高網絡效率</li>
+            </ul>
+        </li>
+        <li>可以與 Direct Connect 網關集成
+            <ul>
+                <li>通過 Transit Gateway 與 Direct Connect 網關的關聯，實現本地網絡與多個 VPC 的高性能連接</li>
+                <li>提供比 VPN 更低延遲、更高帶寬的連接選項</li>
+            </ul>
+        </li>
+        <li>支持 VPN 連接
+            <ul>
+                <li>可以將多個 Site-to-Site VPN 連接到 Transit Gateway</li>
+                <li>支持 ECMP（等價多路徑）路由，實現 VPN 連接的負載均衡</li>
+            </ul>
+        </li>
     </ul>
     
     <div class="note">
         <p>考試要點：Transit Gateway 是連接多個 VPC 和本地網絡的首選方式，特別是在複雜的網絡拓撲中。了解其與 Direct Connect 和 VPN 的集成方式。</p>
+        <p>架構示例：</p>
+        <ul>
+            <li>混合雲架構：Transit Gateway 連接多個 VPC 和本地數據中心，通過 Direct Connect 或 VPN 提供統一的網絡連接</li>
+            <li>多賬戶環境：在 AWS 組織中，使用共享的 Transit Gateway 連接不同賬戶的 VPC</li>
+            <li>全球網絡：通過區域間 Transit Gateway 對等連接，建立跨多個 AWS 區域的全球網絡</li>
+        </ul>
     </div>
     
     <h3>AWS Direct Connect</h3>
     <ul>
-        <li>提供從本地數據中心到 AWS 的專用網絡連接</li>
-        <li>支持 1Gbps 和 10Gbps 的專用連接</li>
-        <li>可以通過合作夥伴提供的託管連接獲得較低帶寬</li>
-        <li>支持公共和私有虛擬接口 (VIF)</li>
-        <li>Direct Connect Gateway 允許從本地網絡訪問多個區域的多個 VPC</li>
-        <li>為實現高可用性，應在不同位置配置多個 Direct Connect 連接</li>
-        <li>可以與 Site-to-Site VPN 結合使用，提供加密連接</li>
+        <li>提供從本地數據中心到 AWS 的專用網絡連接
+            <ul>
+                <li>物理專用連接，不通過公共互聯網，提供更一致的網絡體驗</li>
+                <li>減少網絡成本、增加帶寬吞吐量、提供更穩定的網絡體驗</li>
+            </ul>
+        </li>
+        <li>支持 1Gbps 和 10Gbps 的專用連接
+            <ul>
+                <li>專用連接需要在 AWS Direct Connect 位置安裝物理端口</li>
+                <li>100Gbps 連接在部分區域可用，適用於極高帶寬需求</li>
+            </ul>
+        </li>
+        <li>可以通過合作夥伴提供的託管連接獲得較低帶寬
+            <ul>
+                <li>託管連接提供 50Mbps 到 10Gbps 的選項</li>
+                <li>無需在 Direct Connect 位置安裝設備，由合作夥伴管理物理連接</li>
+            </ul>
+        </li>
+        <li>支持公共和私有虛擬接口 (VIF)
+            <ul>
+                <li>私有 VIF：連接到 VPC，使用私有 IP 地址通信</li>
+                <li>公共 VIF：訪問所有 AWS 公共服務，如 S3、DynamoDB 等</li>
+                <li>傳輸 VIF：連接到 Transit Gateway，實現與多個 VPC 的連接</li>
+            </ul>
+        </li>
+        <li>Direct Connect Gateway 允許從本地網絡訪問多個區域的多個 VPC
+            <ul>
+                <li>全球性資源，可以與多個區域的 VPC 或 Transit Gateway 關聯</li>
+                <li>簡化混合雲網絡架構，避免為每個區域設置單獨的 Direct Connect 連接</li>
+            </ul>
+        </li>
+        <li>為實現高可用性，應在不同位置配置多個 Direct Connect 連接
+            <ul>
+                <li>單一 Direct Connect 連接不提供 SLA 保證</li>
+                <li>最佳實踐：使用多個 Direct Connect 位置的連接，實現物理冗餘</li>
+            </ul>
+        </li>
+        <li>可以與 Site-to-Site VPN 結合使用，提供加密連接
+            <ul>
+                <li>Direct Connect 本身不提供加密，數據以明文傳輸</li>
+                <li>可以在 Direct Connect 上運行 IPsec VPN，結合兩者優勢</li>
+                <li>VPN 也可作為 Direct Connect 故障時的備份連接</li>
+            </ul>
+        </li>
     </ul>
     
     <div class="important">
         <p>高可用性設計：為了實現高可用性，應該在不同位置配置多個 Direct Connect 連接，並考慮使用 Site-to-Site VPN 作為備份連接。</p>
+        <p>Direct Connect 彈性模型：</p>
+        <ul>
+            <li>最大彈性（99.99% SLA）：在不同位置使用單獨的連接到不同的 AWS 設備</li>
+            <li>高彈性（99.9% SLA）：在不同位置使用單獨的連接到相同的 AWS 設備</li>
+            <li>開發/測試（無 SLA）：單一連接，無冗餘</li>
+        </ul>
     </div>
     
     <h3>VPN 連接</h3>
     <ul>
-        <li>Site-to-Site VPN 提供本地網絡與 AWS VPC 之間的加密連接</li>
-        <li>可以作為 Direct Connect 的備份或與 Direct Connect 結合使用</li>
-        <li>Client VPN 允許遠程用戶安全地訪問 AWS 或本地網絡</li>
-        <li>支持靜態路由和動態路由 (BGP)</li>
-        <li>VPN 連接可以連接到 Transit Gateway 或虛擬私有網關 (VGW)</li>
+        <li>Site-to-Site VPN 提供本地網絡與 AWS VPC 之間的加密連接
+            <ul>
+                <li>使用 IPsec 協議建立加密隧道，保護數據傳輸安全</li>
+                <li>每個 VPN 連接提供兩個隧道，實現冗餘</li>
+                <li>支持最高 1.25Gbps 的吞吐量，可以通過多個 VPN 連接實現更高帶寬</li>
+            </ul>
+        </li>
+        <li>可以作為 Direct Connect 的備份或與 Direct Connect 結合使用
+            <ul>
+                <li>VPN 作為備份：當 Direct Connect 故障時自動切換到 VPN 連接</li>
+                <li>VPN over Direct Connect：在 Direct Connect 連接上運行 IPsec VPN，結合高帶寬和加密優勢</li>
+            </ul>
+        </li>
+        <li>Client VPN 允許遠程用戶安全地訪問 AWS 或本地網絡
+            <ul>
+                <li>基於 OpenVPN 的託管服務，支持多種身份驗證方式（Active Directory、證書、SAML）</li>
+                <li>可以配置分割隧道，只有特定流量通過 VPN</li>
+                <li>支持基於安全組和網絡 ACL 的訪問控制</li>
+            </ul>
+        </li>
+        <li>支持靜態路由和動態路由 (BGP)
+            <ul>
+                <li>靜態路由：手動配置路由表，適用於簡單網絡</li>
+                <li>動態路由：使用 BGP 協議自動交換路由信息，適用於複雜網絡</li>
+                <li>BGP 支持路由策略、路由過濾和路徑選擇</li>
+            </ul>
+        </li>
+        <li>VPN 連接可以連接到 Transit Gateway 或虛擬私有網關 (VGW)
+            <ul>
+                <li>連接到 VGW：傳統模式，一個 VPN 連接只能連接到一個 VPC</li>
+                <li>連接到 Transit Gateway：可以訪問多個 VPC，支持 ECMP 路由</li>
+                <li>Transit Gateway 支持 VPN 連接的等價多路徑 (ECMP) 路由，可以實現多個 VPN 隧道之間的負載均衡</li>
+            </ul>
+        </li>
     </ul>
+    
+    <div class="note">
+        <p>VPN 與 Direct Connect 比較：</p>
+        <table border="1" style="width:100%; border-collapse: collapse; margin: 10px 0;">
+            <tr>
+                <th>特性</th>
+                <th>Site-to-Site VPN</th>
+                <th>Direct Connect</th>
+            </tr>
+            <tr>
+                <td>連接類型</td>
+                <td>通過公共互聯網的加密隧道</td>
+                <td>專用物理連接</td>
+            </tr>
+            <tr>
+                <td>設置時間</td>
+                <td>分鐘級，快速部署</td>
+                <td>週或月級，需要物理連接</td>
+            </tr>
+            <tr>
+                <td>成本</td>
+                <td>較低，按小時計費</td>
+                <td>較高，固定月費</td>
+            </tr>
+            <tr>
+                <td>帶寬</td>
+                <td>最高 1.25Gbps（單隧道）</td>
+                <td>1Gbps、10Gbps、100Gbps</td>
+            </tr>
+            <tr>
+                <td>延遲</td>
+                <td>可變，取決於互聯網狀況</td>
+                <td>一致，低延遲</td>
+            </tr>
+            <tr>
+                <td>安全性</td>
+                <td>IPsec 加密</td>
+                <td>專用連接，默認無加密</td>
+            </tr>
+        </table>
+    </div>
     
     <h3>PrivateLink</h3>
     <ul>
-        <li>提供 VPC 與服務之間的私有連接，無需通過公共互聯網</li>
-        <li>可用於訪問 AWS 服務或其他 AWS 賬戶中的服務</li>
-        <li>通過 VPC 端點實現，支持接口端點和網關端點</li>
-        <li>網關端點僅支持 S3 和 DynamoDB</li>
-        <li>接口端點支持大多數 AWS 服務和自定義服務</li>
-        <li>提高安全性，減少數據傳輸成本</li>
+        <li>提供 VPC 與服務之間的私有連接，無需通過公共互聯網
+            <ul>
+                <li>創建點對點私有連接，流量不會離開 AWS 網絡</li>
+                <li>無需使用互聯網網關、NAT 設備、VPN 連接或 Direct Connect</li>
+            </ul>
+        </li>
+        <li>可用於訪問 AWS 服務或其他 AWS 賬戶中的服務
+            <ul>
+                <li>訪問 AWS 服務：如 S3、DynamoDB、SNS、SQS 等</li>
+                <li>訪問第三方服務：如 SaaS 產品、合作夥伴服務</li>
+                <li>訪問自己的服務：跨賬戶、跨 VPC 共享應用</li>
+            </ul>
+        </li>
+        <li>通過 VPC 端點實現，支持接口端點和網關端點
+            <ul>
+                <li>VPC 端點是 VPC 內的虛擬設備，支持私有連接到其他服務</li>
+                <li>水平擴展、冗餘、高可用的組件</li>
+            </ul>
+        </li>
+        <li>網關端點僅支持 S3 和 DynamoDB
+            <ul>
+                <li>網關端點是路由表中的目標，流量通過 AWS 骨幹網絡路由到服務</li>
+                <li>免費使用，不收取小時費用或數據處理費用</li>
+                <li>通過策略控制對特定 S3 存儲桶或 DynamoDB 表的訪問</li>
+            </ul>
+        </li>
+        <li>接口端點支持大多數 AWS 服務和自定義服務
+            <ul>
+                <li>基於 AWS PrivateLink 技術，在 VPC 中創建彈性網絡接口（ENI）</li>
+                <li>每個可用區一個 ENI，提供高可用性</li>
+                <li>收取小時費用和數據處理費用</li>
+            </ul>
+        </li>
+        <li>提高安全性，減少數據傳輸成本
+            <ul>
+                <li>安全性：流量不經過公共互聯網，減少攻擊面</li>
+                <li>成本：避免公共 IP 地址和 NAT 網關費用</li>
+                <li>合規性：滿足數據不經過公共網絡的監管要求</li>
+            </ul>
+        </li>
     </ul>
     
     <div class="note">
         <p>考試要點：了解何時使用 PrivateLink 而不是其他連接選項，特別是在需要私密訪問 AWS 服務或第三方服務時。</p>
+        <p>VPC 端點類型比較：</p>
+        <table border="1" style="width:100%; border-collapse: collapse; margin: 10px 0;">
+            <tr>
+                <th>特性</th>
+                <th>接口端點</th>
+                <th>網關端點</th>
+            </tr>
+            <tr>
+                <td>支持的服務</td>
+                <td>大多數 AWS 服務、自定義服務</td>
+                <td>僅 S3 和 DynamoDB</td>
+            </tr>
+            <tr>
+                <td>連接方式</td>
+                <td>彈性網絡接口 (ENI)</td>
+                <td>路由表條目</td>
+            </tr>
+            <tr>
+                <td>可用區彈性</td>
+                <td>每個可用區單獨配置</td>
+                <td>區域級資源，所有可用區共享</td>
+            </tr>
+            <tr>
+                <td>定價</td>
+                <td>小時費用 + 數據處理費用</td>
+                <td>免費</td>
+            </tr>
+            <tr>
+                <td>安全控制</td>
+                <td>安全組</td>
+                <td>端點策略</td>
+            </tr>
+            <tr>
+                <td>DNS 解析</td>
+                <td>可以啟用私有 DNS</td>
+                <td>使用公共 DNS 名稱</td>
+            </tr>
+        </table>
     </div>
+    
+    <h2>網絡安全與訪問控制</h2>
+    
+    <h3>安全組 (Security Groups)</h3>
+    <ul>
+        <li>作用於實例級別的虛擬防火牆
+            <ul>
+                <li>直接關聯到 EC2 實例、RDS 數據庫、Lambda 函數等 AWS 資源</li>
+                <li>控制進出資源的流量，而不是子網級別</li>
+            </ul>
+        </li>
+        <li>僅支持允許規則，默認拒絕所有流量
+            <ul>
+                <li>無法創建顯式拒絕規則，只能創建允許規則</li>
+                <li>未明確允許的流量會被隱式拒絕</li>
+                <li>新創建的安全組默認允許所有出站流量，拒絕所有入站流量</li>
+            </ul>
+        </li>
+        <li>有狀態 - 允許的入站流量自動允許其響應流量
+            <ul>
+                <li>例如：如果允許入站 HTTP 流量（端口 80），則相關的出站響應流量會自動允許，無需額外規則</li>
+                <li>這與無狀態防火牆（如 NACL）不同，後者需要同時配置入站和出站規則</li>
+            </ul>
+        </li>
+        <li>可以引用其他安全組，包括自引用
+            <ul>
+                <li>可以使用安全組 ID 作為源或目標，而不是 IP 地址</li>
+                <li>例如：允許來自 Web 服務器安全組的流量訪問數據庫安全組</li>
+                <li>自引用：允許同一安全組內的資源相互通信，常用於集群</li>
+            </ul>
+        </li>
+        <li>可以在多個實例之間共享
+            <ul>
+                <li>一個安全組可以應用於多個資源，簡化管理</li>
+                <li>一個資源可以關聯多個安全組，最多 5 個（可提高限制）</li>
+            </ul>
+        </li>
+        <li>每個安全組最多可以有 60 個入站和 60 個出站規則
+            <ul>
+                <li>默認限制，可以通過 AWS 支持請求增
     
     <h2>網絡安全與訪問控制</h2>
     
@@ -159,85 +403,468 @@
     
     <h3>網絡訪問控制列表 (NACL)</h3>
     <ul>
-        <li>作用於子網級別的無狀態防火牆</li>
-        <li>支持允許和拒絕規則</li>
-        <li>規則按編號順序處理</li>
-        <li>必須同時配置入站和出站規則</li>
-        <li>每個子網只能關聯一個 NACL，但一個 NACL 可以關聯多個子網</li>
-        <li>默認 NACL 允許所有入站和出站流量</li>
+        <li>作用於子網級別的無狀態防火牆
+            <ul>
+                <li>控制進出子網的流量，而不是單個資源</li>
+                <li>所有進出子網的流量都必須通過 NACL 檢查</li>
+            </ul>
+        </li>
+        <li>支持允許和拒絕規則
+            <ul>
+                <li>可以明確拒絕特定流量，這是與安全組的主要區別</li>
+                <li>例如：可以拒絕來自特定 IP 地址或 IP 範圍的流量</li>
+            </ul>
+        </li>
+        <li>規則按編號順序處理
+            <ul>
+                <li>規則從最低編號開始評估，一旦找到匹配項就停止</li>
+                <li>建議以增量方式編號規則（如 100, 200, 300），以便於後續插入新規則</li>
+                <li>最後總是有一個編號為 * 的默認拒絕規則</li>
+            </ul>
+        </li>
+        <li>必須同時配置入站和出站規則
+            <ul>
+                <li>無狀態意味著系統不會自動允許響應流量</li>
+                <li>例如：如果允許入站 HTTP 請求，必須明確配置出站規則允許 HTTP 響應</li>
+            </ul>
+        </li>
+        <li>每個子網只能關聯一個 NACL，但一個 NACL 可以關聯多個子網
+            <ul>
+                <li>子網必須關聯一個 NACL，如果不指定，則使用默認 NACL</li>
+                <li>可以將相同安全要求的多個子網關聯到同一個 NACL</li>
+            </ul>
+        </li>
+        <li>默認 NACL 允許所有入站和出站流量
+            <ul>
+                <li>新創建的 VPC 包含一個默認 NACL，允許所有流量</li>
+                <li>自定義 NACL 默認拒絕所有流量，直到添加允許規則</li>
+            </ul>
+        </li>
     </ul>
     
     <div class="important">
         <p>安全最佳實踐：結合使用安全組和 NACL 提供多層防禦。安全組用於精細控制實例級別的訪問，NACL 用於子網級別的額外保護層。</p>
+        <p>NACL 與安全組比較：</p>
+        <table border="1" style="width:100%; border-collapse: collapse; margin: 10px 0;">
+            <tr>
+                <th>特性</th>
+                <th>網絡 ACL</th>
+                <th>安全組</th>
+            </tr>
+            <tr>
+                <td>作用範圍</td>
+                <td>子網級別</td>
+                <td>實例級別</td>
+            </tr>
+            <tr>
+                <td>狀態</td>
+                <td>無狀態（需同時配置入站和出站規則）</td>
+                <td>有狀態（自動允許響應流量）</td>
+            </tr>
+            <tr>
+                <td>規則類型</td>
+                <td>允許和拒絕規則</td>
+                <td>僅允許規則</td>
+            </tr>
+            <tr>
+                <td>規則處理</td>
+                <td>按編號順序處理</td>
+                <td>所有規則同時評估</td>
+            </tr>
+            <tr>
+                <td>默認設置</td>
+                <td>默認 NACL 允許所有流量；自定義 NACL 拒絕所有流量</td>
+                <td>默認拒絕所有入站，允許所有出站</td>
+            </tr>
+        </table>
     </div>
     
     <h3>NAT 網關/實例</h3>
     <ul>
-        <li>允許私有子網中的實例訪問互聯網，但阻止互聯網發起的連接</li>
-        <li>NAT 網關是 AWS 託管服務，提供更好的可用性和帶寬</li>
-        <li>NAT 實例是自行管理的 EC2 實例，成本較低但需要自行管理</li>
-        <li>為實現高可用性，應在每個可用區部署 NAT 網關</li>
-        <li>NAT 網關支持 5Gbps 的帶寬，並可自動擴展至 45Gbps</li>
-        <li>NAT 網關不支持 IPv6 流量，對於 IPv6 應使用出口專用互聯網網關</li>
+        <li>允許私有子網中的實例訪問互聯網，但阻止互聯網發起的連接
+            <ul>
+                <li>實現單向連接：私有子網中的資源可以訪問互聯網，但互聯網無法直接訪問這些資源</li>
+                <li>常用於需要下載更新、訪問外部 API 但不需要直接暴露的資源</li>
+            </ul>
+        </li>
+        <li>NAT 網關是 AWS 託管服務，提供更好的可用性和帶寬
+            <ul>
+                <li>AWS 完全管理，無需維護或修補</li>
+                <li>自動提供冗餘，在單一可用區內高可用</li>
+                <li>每月固定費用加數據處理費用</li>
+            </ul>
+        </li>
+        <li>NAT 實例是自行管理的 EC2 實例，成本較低但需要自行管理
+            <ul>
+                <li>基於特殊 AMI 的 EC2 實例，需要手動配置</li>
+                <li>需要禁用源/目標檢查</li>
+                <li>需要自行管理高可用性、擴展和維護</li>
+                <li>可以同時用作堡壘主機（跳板機）</li>
+            </ul>
+        </li>
+        <li>為實現高可用性，應在每個可用區部署 NAT 網關
+            <ul>
+                <li>NAT 網關是可用區資源，不會自動跨可用區提供冗餘</li>
+                <li>最佳實踐：在每個包含私有資源的可用區部署 NAT 網關</li>
+                <li>配置路由表，使每個可用區的私有子網使用同一可用區的 NAT 網關</li>
+            </ul>
+        </li>
+        <li>NAT 網關支持 5Gbps 的帶寬，並可自動擴展至 45Gbps
+            <ul>
+                <li>基礎帶寬為 5Gbps，根據流量自動擴展</li>
+                <li>如果需要更高帶寬，可以將流量分散到多個 NAT 網關</li>
+            </ul>
+        </li>
+        <li>NAT 網關不支持 IPv6 流量，對於 IPv6 應使用出口專用互聯網網關
+            <ul>
+                <li>NAT 網關僅處理 IPv4 流量</li>
+                <li>對於 IPv6，AWS 建議使用出口專用互聯網網關（Egress-only Internet Gateway）</li>
+                <li>出口專用互聯網網關提供與 NAT 網關類似的功能，但專為 IPv6 設計</li>
+            </ul>
+        </li>
     </ul>
+    
+    <div class="note">
+        <p>NAT 網關與 NAT 實例比較：</p>
+        <table border="1" style="width:100%; border-collapse: collapse; margin: 10px 0;">
+            <tr>
+                <th>特性</th>
+                <th>NAT 網關</th>
+                <th>NAT 實例</th>
+            </tr>
+            <tr>
+                <td>可用性</td>
+                <td>AWS 管理的高可用性（單一可用區內）</td>
+                <td>需要自行實現高可用性（如自動恢復、多實例）</td>
+            </tr>
+            <tr>
+                <td>帶寬</td>
+                <td>最高 45Gbps，自動擴展</td>
+                <td>取決於實例類型</td>
+            </tr>
+            <tr>
+                <td>維護</td>
+                <td>AWS 自動管理</td>
+                <td>需要自行管理（安全更新、配置）</td>
+            </tr>
+            <tr>
+                <td>成本</td>
+                <td>固定小時費用 + 數據處理費</td>
+                <td>EC2 實例費用 + 數據處理費</td>
+            </tr>
+            <tr>
+                <td>安全組</td>
+                <td>不能直接關聯安全組</td>
+                <td>可以使用安全組控制流量</td>
+            </tr>
+            <tr>
+                <td>多功能性</td>
+                <td>僅提供 NAT 功能</td>
+                <td>可以配置為堡壘主機或其他用途</td>
+            </tr>
+        </table>
+    </div>
     
     <h2>Route 53 路由策略</h2>
     
     <h3>路由策略類型</h3>
     <ul>
-        <li>簡單路由：將流量路由到單一資源</li>
-        <li>加權路由：按指定比例將流量分配到多個資源</li>
-        <li>延遲路由：將流量路由到延遲最低的區域</li>
-        <li>故障轉移路由：主資源故障時自動切換到備用資源</li>
-        <li>地理位置路由：基於用戶地理位置路由流量</li>
-        <li>地理位置鄰近度路由：基於資源的物理位置路由流量</li>
-        <li>多值應答路由：返回多個健康資源的隨機選擇</li>
+        <li>簡單路由：將流量路由到單一資源
+            <ul>
+                <li>最基本的路由策略，一個域名對應一個或多個值</li>
+                <li>如果指定多個值，Route 53 會隨機返回一個</li>
+                <li>不支持健康檢查</li>
+                <li>適用場景：簡單網站、單一端點服務</li>
+            </ul>
+        </li>
+        <li>加權路由：按指定比例將流量分配到多個資源
+            <ul>
+                <li>為每個記錄分配權重值，決定流量分配比例</li>
+                <li>例如：90% 流量到生產環境，10% 流量到測試環境</li>
+                <li>支持健康檢查，可以跳過不健康的端點</li>
+                <li>適用場景：A/B 測試、版本發布、負載均衡</li>
+            </ul>
+        </li>
+        <li>延遲路由：將流量路由到延遲最低的區域
+            <ul>
+                <li>基於 AWS 測量的實際延遲數據，將用戶路由到延遲最低的區域</li>
+                <li>需要在多個 AWS 區域創建相同的資源</li>
+                <li>支持健康檢查，避免路由到不健康的端點</li>
+                <li>適用場景：全球分布的應用，優化用戶體驗</li>
+            </ul>
+        </li>
+        <li>故障轉移路由：主資源故障時自動切換到備用資源
+            <ul>
+                <li>定義主記錄和備用記錄，當主記錄健康檢查失敗時自動切換到備用記錄</li>
+                <li>必須配置健康檢查</li>
+                <li>可以嵌套使用，創建多級故障轉移架構</li>
+                <li>適用場景：災難恢復、高可用性架構</li>
+            </ul>
+        </li>
+        <li>地理位置路由：基於用戶地理位置路由流量
+            <ul>
+                <li>根據用戶的地理位置（國家/地區）路由到不同的資源</li>
+                <li>可以指定默認記錄，處理未匹配任何地理位置的請求</li>
+                <li>支持健康檢查</li>
+                <li>適用場景：內容本地化、合規性要求（如數據主權）</li>
+            </ul>
+        </li>
+        <li>地理位置鄰近度路由：基於資源的物理位置路由流量
+            <ul>
+                <li>根據資源與用戶的地理鄰近度路由流量</li>
+                <li>可以通過偏移值調整區域邊界，將更多流量路由到特定區域</li>
+                <li>需要使用 Route 53 流量流策略</li>
+                <li>適用場景：動態調整全球流量分配、容量管理</li>
+            </ul>
+        </li>
+        <li>多值應答路由：返回多個健康資源的隨機選擇
+            <ul>
+                <li>類似簡單路由，但支持健康檢查</li>
+                <li>返回最多 8 個健康記錄</li>
+                <li>不是完整的負載均衡解決方案，但可以提供基本的 DNS 級別負載均衡</li>
+                <li>適用場景：需要 DNS 級別負載均衡和故障轉移的應用</li>
+            </ul>
+        </li>
     </ul>
     
     <div class="note">
         <p>考試要點：了解每種路由策略的適用場景，特別是延遲路由、故障轉移路由和地理位置路由在全球部署中的應用。</p>
+        <p>路由策略選擇指南：</p>
+        <ul>
+            <li>優化性能：使用延遲路由或地理位置鄰近度路由</li>
+            <li>高可用性：使用故障轉移路由或多值應答路由</li>
+            <li>地理限制：使用地理位置路由</li>
+            <li>流量分配：使用加權路由</li>
+            <li>混合策略：可以組合使用多種路由策略，如先使用地理位置路由，然後在每個區域內使用延遲路由</li>
+        </ul>
     </div>
     
     <h3>私有託管區域</h3>
     <ul>
-        <li>允許在 VPC 內解析自定義域名</li>
-        <li>可以跨多個 VPC 共享私有託管區域</li>
-        <li>支持 VPC 與本地網絡之間的 DNS 解析</li>
-        <li>可以使用 Route 53 Resolver 實現混合雲 DNS 解析</li>
+        <li>允許在 VPC 內解析自定義域名
+            <ul>
+                <li>為內部資源創建自定義 DNS 名稱，如 database.internal</li>
+                <li>這些名稱只能在關聯的 VPC 內解析，外部網絡無法訪問</li>
+                <li>支持所有 Route 53 記錄類型和路由策略</li>
+            </ul>
+        </li>
+        <li>可以跨多個 VPC 共享私有託管區域
+            <ul>
+                <li>一個私有託管區域可以關聯到多個 VPC</li>
+                <li>VPC 可以位於同一賬戶或不同賬戶</li>
+                <li>跨賬戶共享需要使用 AWS Resource Access Manager (RAM)</li>
+            </ul>
+        </li>
+        <li>支持 VPC 與本地網絡之間的 DNS 解析
+            <ul>
+                <li>通過 Route 53 Resolver 端點實現 VPC 與本地網絡之間的 DNS 查詢</li>
+                <li>入站端點：允許本地網絡解析 VPC 中的 DNS 名稱</li>
+                <li>出站端點：允許 VPC 中的資源解析本地網絡中的 DNS 名稱</li>
+            </ul>
+        </li>
+        <li>可以使用 Route 53 Resolver 實現混合雲 DNS 解析
+            <ul>
+                <li>Route 53 Resolver 提供遞歸 DNS 服務，處理 VPC 內的所有 DNS 查詢</li>
+                <li>可以創建條件轉發規則，將特定域名的查詢轉發到本地 DNS 服務器</li>
+                <li>支持雙向 DNS 解析，實現混合雲環境中的無縫 DNS 集成</li>
+            </ul>
+        </li>
     </ul>
+    
+    <div class="note">
+        <p>混合雲 DNS 架構：</p>
+        <ul>
+            <li>入站解析器端點：部署在 VPC 中，提供 IP 地址供本地網絡發送 DNS 查詢</li>
+            <li>出站解析器端點：將 DNS 查詢從 VPC 轉發到本地 DNS 服務器</li>
+            <li>解析器規則：定義哪些域名查詢應轉發到本地網絡</li>
+            <li>這種架構允許 AWS 和本地資源使用各自的域名相互訪問，無需維護重複的 DNS 記錄</li>
+        </ul>
+    </div>
     
     <h2>內容分發與加速</h2>
     
     <h3>CloudFront</h3>
     <ul>
-        <li>全球內容分發網絡 (CDN)，降低延遲並提高性能</li>
-        <li>支持靜態和動態內容，以及流媒體</li>
-        <li>與 AWS Shield 和 AWS WAF 集成提供 DDoS 防護</li>
-        <li>支持自定義域名和 HTTPS</li>
-        <li>區域邊緣緩存提高緩存命中率</li>
-        <li>源可以是 S3 存儲桶、EC2 實例、ELB 或自定義源</li>
-        <li>支持源訪問控制 (OAC) 和源訪問身份 (OAI) 保護 S3 源</li>
-        <li>支持地理限制功能</li>
-        <li>支持 Lambda@Edge 和 CloudFront Functions 進行邊緣計算</li>
+        <li>全球內容分發網絡 (CDN)，降低延遲並提高性能
+            <ul>
+                <li>在全球 400+ 個接入點（邊緣站點）分發內容</li>
+                <li>將內容緩存在靠近用戶的位置，減少延遲</li>
+                <li>通過優化的網絡路徑和 TCP 連接提高性能</li>
+            </ul>
+        </li>
+        <li>支持靜態和動態內容，以及流媒體
+            <ul>
+                <li>靜態內容：圖片、CSS、JavaScript 文件等</li>
+                <li>動態內容：API 響應、個性化網頁等</li>
+                <li>流媒體：支持 HLS、DASH 等流媒體協議</li>
+                <li>可以為不同類型的內容配置不同的緩存行為</li>
+            </ul>
+        </li>
+        <li>與 AWS Shield 和 AWS WAF 集成提供 DDoS 防護
+            <ul>
+                <li>AWS Shield Standard：自動包含，提供常見 DDoS 攻擊防護</li>
+                <li>AWS Shield Advanced：付費服務，提供增強的 DDoS 保護</li>
+                <li>AWS WAF：可以配置 Web 應用防火牆規則，防止常見 Web 攻擊</li>
+            </ul>
+        </li>
+        <li>支持自定義域名和 HTTPS
+            <ul>
+                <li>可以使用自己的域名代替 CloudFront 默認域名</li>
+                <li>支持 SNI（服務器名稱指示）</li>
+                <li>提供 SSL/TLS 證書管理，包括免費的 ACM 證書</li>
+                <li>支持自定義 SSL 證書和 HTTPS 到源</li>
+            </ul>
+        </li>
+        <li>區域邊緣緩存提高緩存命中率
+            <ul>
+                <li>區域邊緣緩存位於邊緣站點和源之間</li>
+                <li>作為較大的緩存層，減少對源的請求</li>
+                <li>提高不常訪問內容的緩存命中率</li>
+            </ul>
+        </li>
+        <li>源可以是 S3 存儲桶、EC2 實例、ELB 或自定義源
+            <ul>
+                <li>S3 源：最常見的靜態內容源，與 CloudFront 深度集成</li>
+                <li>EC2/ELB 源：用於動態內容或應用程序</li>
+                <li>自定義源：任何可通過 HTTP/HTTPS 訪問的源，包括本地服務器</li>
+                <li>可以配置多個源和源組，實現內容路由和故障轉移</li>
+            </ul>
+        </li>
+        <li>支持源訪問控制 (OAC) 和源訪問身份 (OAI) 保護 S3 源
+            <ul>
+                <li>OAI（舊方法）：創建特殊身份，只允許 CloudFront 訪問 S3 存儲桶</li>
+                <li>OAC（新方法）：增強版 OAI，支持更多功能，如 SSE-KMS 加密和 S3 Object Lambda</li>
+                <li>防止用戶直接訪問 S3 URL，繞過 CloudFront</li>
+            </ul>
+        </li>
+        <li>支持地理限制功能
+            <ul>
+                <li>可以限制特定國家/地區的用戶訪問內容</li>
+                <li>支持白名單（只允許特定國家）或黑名單（阻止特定國家）</li>
+                <li>基於 IP 地址判斷用戶位置</li>
+            </ul>
+        </li>
+        <li>支持 Lambda@Edge 和 CloudFront Functions 進行邊緣計算
+            <ul>
+                <li>Lambda@Edge：在 CloudFront 邊緣執行 Lambda 函數，支持複雜的處理邏輯</li>
+                <li>CloudFront Functions：輕量級、高性能的 JavaScript 函數，適用於簡單的處理任務</li>
+                <li>用例：URL 重寫/重定向、請求/響應操作、內容個性化、A/B 測試等</li>
+            </ul>
+        </li>
     </ul>
     
     <div class="important">
         <p>性能優化：使用 CloudFront 不僅可以提高全球用戶的訪問速度，還可以減輕源服務器的負載，提高應用程序的可擴展性和可用性。</p>
+        <p>CloudFront 最佳實踐：</p>
+        <ul>
+            <li>緩存優化：設置適當的緩存策略，最大化緩存命中率</li>
+            <li>源保護：使用 OAC/OAI 保護 S3 源，使用源組實現故障轉移</li>
+            <li>安全性：配置 HTTPS、地理限制、WAF 規則增強安全性</li>
+            <li>性能監控：使用 CloudWatch 指標監控性能，分析緩存命中率和錯誤率</li>
+            <li>成本優化：選擇適當的價格類別，根據目標受眾地理分布優化成本</li>
+        </ul>
     </div>
     
     <h3>Global Accelerator</h3>
     <ul>
-        <li>通過 AWS 全球網絡加速訪問應用程序</li>
-        <li>提供靜態 IP 地址作為應用程序的入口點</li>
-        <li>支持 TCP 和 UDP 協議</li>
-        <li>自動將流量路由到最近的健康端點</li>
-        <li>提供跨區域故障轉移</li>
-        <li>適用於非 HTTP 使用場景或需要固定 IP 地址的應用</li>
-        <li>可以加速 ALB、NLB、EC2 實例或彈性 IP</li>
+        <li>通過 AWS 全球網絡加速訪問應用程序
+            <ul>
+                <li>使用
+    
+    <h3>Global Accelerator</h3>
+    <ul>
+        <li>通過 AWS 全球網絡加速訪問應用程序
+            <ul>
+                <li>將用戶流量引導至 AWS 全球骨幹網絡，避開公共互聯網擁塞</li>
+                <li>在靠近用戶的邊緣位置接收流量，通過優化路由提供更低延遲</li>
+                <li>與 CloudFront 不同，不緩存內容，而是加速到源的連接</li>
+            </ul>
+        </li>
+        <li>提供靜態 IP 地址作為應用程序的入口點
+            <ul>
+                <li>分配兩個靜態 Anycast IP 地址，全球一致</li>
+                <li>無需更改 DNS 或客戶端配置即可實現跨區域故障轉移</li>
+                <li>簡化 DNS 配置，避免 DNS 傳播延遲</li>
+            </ul>
+        </li>
+        <li>支持 TCP 和 UDP 協議
+            <ul>
+                <li>適用於各種應用協議，包括 HTTP/HTTPS、MQTT、RTMP 等</li>
+                <li>特別適合需要低延遲的 UDP 應用，如遊戲、IoT、VoIP</li>
+                <li>保持客戶端 IP 地址信息（使用 TCP 終止或 UDP 流時）</li>
+            </ul>
+        </li>
+        <li>自動將流量路由到最近的健康端點
+            <ul>
+                <li>基於用戶位置和端點健康狀態路由流量</li>
+                <li>持續監控端點健康狀態，自動避開不健康的端點</li>
+                <li>支持加權路由，控制流量分配比例</li>
+            </ul>
+        </li>
+        <li>提供跨區域故障轉移
+            <ul>
+                <li>當一個區域的所有端點不健康時，自動將流量路由到其他區域</li>
+                <li>無需 DNS 更改，故障轉移幾乎立即生效</li>
+                <li>可以配置端點組的流量撥號，控制每個區域接收的流量百分比</li>
+            </ul>
+        </li>
+        <li>適用於非 HTTP 使用場景或需要固定 IP 地址的應用
+            <ul>
+                <li>遊戲服務器：需要低延遲 UDP 連接</li>
+                <li>IoT 設備：需要固定 IP 地址進行連接</li>
+                <li>媒體流：需要高吞吐量和低延遲</li>
+                <li>企業應用：需要固定 IP 地址用於防火牆規則</li>
+            </ul>
+        </li>
+        <li>可以加速 ALB、NLB、EC2 實例或彈性 IP
+            <ul>
+                <li>標準加速器：支持 ALB、NLB、EC2 實例和彈性 IP</li>
+                <li>自定義路由加速器：允許將特定流量映射到特定端口和 EC2 實例</li>
+                <li>可以跨多個 AWS 區域部署端點，實現全球高可用性</li>
+            </ul>
+        </li>
     </ul>
     
     <div class="note">
         <p>考試要點：了解 CloudFront 和 Global Accelerator 的區別和適用場景。CloudFront 主要用於 HTTP/HTTPS 內容分發，而 Global Accelerator 適用於需要固定 IP 地址的 TCP/UDP 應用程序加速。</p>
+        <p>CloudFront 與 Global Accelerator 比較：</p>
+        <table border="1" style="width:100%; border-collapse: collapse; margin: 10px 0;">
+            <tr>
+                <th>特性</th>
+                <th>CloudFront</th>
+                <th>Global Accelerator</th>
+            </tr>
+            <tr>
+                <td>主要功能</td>
+                <td>內容分發網絡 (CDN)</td>
+                <td>網絡流量加速器</td>
+            </tr>
+            <tr>
+                <td>緩存</td>
+                <td>在邊緣位置緩存內容</td>
+                <td>不緩存內容，直接加速到源</td>
+            </tr>
+            <tr>
+                <td>協議</td>
+                <td>僅 HTTP/HTTPS</td>
+                <td>任何 TCP/UDP 協議</td>
+            </tr>
+            <tr>
+                <td>IP 地址</td>
+                <td>動態 IP 地址（或自定義域名）</td>
+                <td>靜態 Anycast IP 地址</td>
+            </tr>
+            <tr>
+                <td>端點類型</td>
+                <td>S3、EC2、ELB、自定義源</td>
+                <td>ALB、NLB、EC2、彈性 IP</td>
+            </tr>
+            <tr>
+                <td>適用場景</td>
+                <td>網站、API、流媒體分發</td>
+                <td>遊戲、IoT、VoIP、需要固定 IP 的應用</td>
+            </tr>
+        </table>
     </div>
 
     <div class="nav">
