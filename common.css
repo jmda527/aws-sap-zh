@@ -55,3 +55,12 @@ a:hover {
     border-top: 1px solid #ddd;
     border-bottom: 1px solid #ddd;
 }
+pre {
+    background-color: #f8f9fa;
+    padding: 10px;
+    margin: 15px 0;
+}
+
+table {
+    background-color: #FFFFFF;
+}
